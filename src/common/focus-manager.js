@@ -122,10 +122,13 @@ export class FocusManager {
 		}
 
 		if (e.shiftKey && e.key === 'Tab') {
-			this.tabToGroup(true);
+			// If inside CodeMirror, ignore focus management
+			if (e.target.closest('.cm-content')) return;
 			e.preventDefault();
 		}
 		else if (e.key === 'Tab') {
+			// If inside CodeMirror, ignore focus management
+			if (e.target.closest('.cm-content')) return;
 			this.tabToGroup();
 			e.preventDefault();
 		}

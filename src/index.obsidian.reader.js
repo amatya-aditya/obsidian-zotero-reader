@@ -19,12 +19,13 @@ export default class ReaderAdapter {
 	}
 
 	async createReader(opts) {
+
 		const defaults = {
 			readOnly: false,
 			annotations: [],
 			primaryViewState: {},
 			sidebarWidth: 240,
-			sidebarOpen: false,
+			sidebarOpen: true,
 			toolbarPlaceholderWidth: 0,
 			showAnnotations: true,
 			customThemes: [this.generateObsidianTheme()],
@@ -127,6 +128,11 @@ export default class ReaderAdapter {
 		this.reader._primaryViewContainer.style.opacity = "1";
 
 		this.emit({ type: "ready" });
+
+		//testcode
+		const editor = document.querySelector("#sidebarContent");
+		editor.empty();
+		testfunc("#sidebarContent");
 	}
 
 	applyColorScheme(colorScheme) {

@@ -59,26 +59,89 @@ import ReaderAdapter from "./index.obsidian.reader.js";
 		return `${prefixedSelector}{${block}}`;
 	};
 
+	function splitSelectorList(sel) {
+		const out = [];
+		let buf = "";
+		let p = 0,
+			b = 0;
+		let str = null,
+			esc = false;
+		for (let i = 0; i < sel.length; i++) {
+			const ch = sel[i];
+			if (str) {
+				buf += ch;
+				if (esc) {
+					esc = false;
+					continue;
+				}
+				if (ch === "\\") {
+					esc = true;
+					continue;
+				}
+				if (ch === str) str = null;
+				continue;
+			}
+			if (ch === '"' || ch === "'") {
+				str = ch;
+				buf += ch;
+				continue;
+			}
+			if (ch === "(") {
+				p++;
+				buf += ch;
+				continue;
+			}
+			if (ch === ")") {
+				p = Math.max(0, p - 1);
+				buf += ch;
+				continue;
+			}
+			if (ch === "[") {
+				b++;
+				buf += ch;
+				continue;
+			}
+			if (ch === "]") {
+				b = Math.max(0, b - 1);
+				buf += ch;
+				continue;
+			}
+			if (ch === "," && p === 0 && b === 0) {
+				if (buf.trim()) out.push(buf.trim());
+				buf = "";
+				continue;
+			}
+			buf += ch;
+		}
+		if (buf.trim()) out.push(buf.trim());
+		return out;
+	}
+
+	// Pull a trailing pseudo-element (e.g., ::after) off the end of a selector
+	function extractTrailingPseudo(s) {
+		const m = s.match(
+			/^(.*?)(::[a-z-]+(?:\([^)]*\))?|:(?:before|after|first-line|first-letter))\s*$/i
+		);
+		if (m) return { base: m[1].trim(), pseudo: m[2] };
+		return { base: s.trim(), pseudo: "" };
+	}
+
 	// Safely prefix a selector list.
-	// For most selectors we can do: `.prefix :is(SELECTOR_LIST)`
 	// But if a selector starts with html/body/:root, we must replace that leftmost part.
 	const prefixSelectors = (selectorText, prefix) => {
-		const hasRootyBits = /\b(html|body|:root)\b/.test(selectorText);
-		if (!hasRootyBits) {
-			// Avoid splitting on commas (which can appear inside :not/:is). :is() keeps it intact.
-			return `${prefix} ${selectorText}`;
-		}
-		// Best-effort split for the tricky ones; works well in practice.
-		const parts = selectorText
-			.split(",")
-			.map((s) => s.trim())
-			.filter(Boolean);
-		const transformed = parts.map((s) => {
-			// Replace a leftmost html/body/:root with the prefix (so rules like `body.foo` become `.prefix.foo`)
-			const replaced = s.replace(/^(?:\s*)(:root|html|body)\b/, prefix);
-			if (replaced !== s) return replaced;
-			// Otherwise, just prefix normally
-			return `${prefix} ${s}`;
+		const selectors = splitSelectorList(selectorText);
+		const transformed = selectors.map((sel) => {
+			const { base, pseudo } = extractTrailingPseudo(sel);
+
+			// Replace a leading html/body/:root with the prefix
+			const rooty = /^(?:\s*)(:root|html|body)\b/i;
+			let baseWithPrefix;
+			if (rooty.test(base)) {
+				baseWithPrefix = base.replace(rooty, prefix); // e.g., "body.foo" -> ".scoped.foo"
+			} else {
+				baseWithPrefix = `${prefix} ${base}`; // e.g., ".scoped .list-bullet:hover"
+			}
+			return `${baseWithPrefix}${pseudo}`;
 		});
 		return transformed.join(", ");
 	};
