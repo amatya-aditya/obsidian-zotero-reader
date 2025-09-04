@@ -129,10 +129,10 @@ export default class ReaderAdapter {
 
 		this.emit({ type: "ready" });
 
-		//testcode
-		const editor = document.querySelector("#sidebarContent");
-		editor.empty();
-		testfunc("#sidebarContent");
+		// //test editor
+		// const editor = document.querySelector("#sidebarContent");
+		// editor.empty();
+		// testfunc("#sidebarContent");
 	}
 
 	applyColorScheme(colorScheme) {

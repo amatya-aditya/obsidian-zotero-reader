@@ -267,7 +267,7 @@ import ReaderAdapter from "./index.obsidian.reader.js";
 
 const adapter = new ReaderAdapter();
 
-(async function bootstrap() {
+(async () => {
 	const messenger = new WindowMessenger({
 		remoteWindow: window.parent,
 		allowedOrigins: ["*"],
@@ -283,11 +283,7 @@ const adapter = new ReaderAdapter();
 			async setColorScheme(colorScheme) {
 				adapter.applyColorScheme(colorScheme);
 				return { ok: true };
-			},
-			async dispose() {
-				await adapter.dispose();
-				return { ok: true };
-			},
+			}
 		},
 	});
 
