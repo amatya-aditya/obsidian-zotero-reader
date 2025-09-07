@@ -288,7 +288,11 @@ await (async () => {
 			async updateAnnotation(annotation) {
 				await adapter.updateAnnotation(annotation);
 				return { ok: true };
-			}
+			},
+			async navigate(location) {
+				adapter.navigate(location);
+				return { ok: true };
+			},
 		},
 	});
 

@@ -12,13 +12,14 @@ function ObsidianEditor(props) {
 	};
 
 	useEffect(() => {
+		editorRef.current.empty();
 		obsidianAdapter.createAnnotationEditor(editorId, props.id, options);
 		editorRef.current = document.getElementById(editorId);
 	}, [props.id]);
 
 	return (
 		<div className={cx("editor", { "read-only": props.readOnly })}>
-			<div id={editorId} style={{ fontSize: "1em" }} />
+			<div id={editorId} style={{ fontSize: "1em" }} ref={editorRef} />
 		</div>
 	);
 }

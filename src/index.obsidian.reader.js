@@ -285,6 +285,12 @@ export default class ReaderAdapter {
 		}]);
 	}
 
+	async navigate(location) {
+		if (this.reader) {
+			this.reader.navigate(location);
+		}
+	}
+
 	async dispose() {
 		this.reader = undefined;
 	}
