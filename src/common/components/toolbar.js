@@ -205,7 +205,8 @@ function Toolbar(props) {
 						><IconText/></button>
 					</Localized>
 				)}
-				{props.type === 'pdf' && (
+				{/* TODO: Integrate with obsidian better */}
+				{(props.type === 'pdf' && false) && (
 					<Localized id="reader-toolbar-area" attrs={{ title: true, 'aria-description': true }}>
 						<button
 							tabIndex={-1}
@@ -215,7 +216,8 @@ function Toolbar(props) {
 						><IconImage/></button>
 					</Localized>
 				)}
-				{props.type === 'pdf' && (
+				{/* TODO: Integrate with obsidian better */}
+				{(props.type === 'pdf' && false) && (
 					<Localized id="reader-toolbar-draw" attrs={{ title: true, 'aria-description': true }}>
 						<button
 							tabIndex={-1}

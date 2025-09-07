@@ -259,6 +259,7 @@ import ReaderAdapter from "./index.obsidian.reader.js";
 	return constructed;
 })();
 
+
 /**
  * -----------------------------------------------------------
  * Penpal bridge with the obsidian
@@ -267,7 +268,7 @@ import ReaderAdapter from "./index.obsidian.reader.js";
 
 const adapter = new ReaderAdapter();
 
-(async () => {
+await (async () => {
 	const messenger = new WindowMessenger({
 		remoteWindow: window.parent,
 		allowedOrigins: ["*"],
@@ -294,5 +295,5 @@ const adapter = new ReaderAdapter();
 	// Event pipe child → parent
 	const parent = await connection.promise;
 	adapter.on((evt) => parent.handleEvent(evt));
-	window.parentAdapter = parent;
+	window.obsidianAdapter = parent;
 })();

@@ -116,6 +116,7 @@ export class FocusManager {
 			&& e.shiftKey
 			&& e.key.startsWith('Arrow')) {
 			this._reader._lastView.focus();
+			console.log("CATCH BY THIS");
 			e.preventDefault();
 			e.stopPropagation();
 			return;
