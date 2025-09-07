@@ -283,6 +283,10 @@ const adapter = new ReaderAdapter();
 			async setColorScheme(colorScheme) {
 				adapter.applyColorScheme(colorScheme);
 				return { ok: true };
+			},
+			async updateAnnotation(annotation) {
+				await adapter.updateAnnotation(annotation);
+				return { ok: true };
 			}
 		},
 	});
@@ -290,5 +294,5 @@ const adapter = new ReaderAdapter();
 	// Event pipe child → parent
 	const parent = await connection.promise;
 	adapter.on((evt) => parent.handleEvent(evt));
-	window.testfunc = parent.createEditor;
+	window.parentAdapter = parent;
 })();

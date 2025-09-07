@@ -19,7 +19,6 @@ export default class ReaderAdapter {
 	}
 
 	async createReader(opts) {
-
 		const defaults = {
 			readOnly: false,
 			annotations: [],
@@ -273,6 +272,17 @@ export default class ReaderAdapter {
 			id: "obsidian",
 			label: "Obsidian",
 		};
+	}
+
+	async updateAnnotation(annotation) {
+		const existingAnnotation = this.reader._annotationManager._getAnnotationByID(
+			annotation.id
+		);
+		console.log("Updating annotation:", existingAnnotation, annotation);
+		this.reader._annotationManager.updateAnnotations([{
+			...existingAnnotation,
+			...annotation
+		}]);
 	}
 
 	async dispose() {
