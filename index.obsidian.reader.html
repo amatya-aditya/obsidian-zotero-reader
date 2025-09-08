@@ -46,7 +46,7 @@
 
 		<!-- Loading Enhance.js -->
 		<script src="/enhance.js" type="text/javascript" defer></script>
-		
+
 		<!-- Webpack will inject the reader.js here -->
 		<% for (const js of htmlWebpackPlugin.files.js) { %>
 		<script src="<%= js %>" type="module" defer></script>
@@ -109,7 +109,11 @@
 				class="primary-view"
 				style="opacity: 0"
 			></div>
-			<div id="secondary-view" class="secondary-view"></div>
+			<div
+				id="secondary-view"
+				class="secondary-view"
+				style="opacity: 0"
+			></div>
 		</div>
 		<div id="printContainer"></div>
 	</body>

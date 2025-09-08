@@ -18,6 +18,8 @@ export default class ReaderAdapter {
 		this.listeners.forEach((l) => l(e));
 	}
 
+	secondaryViewInitialized = false;
+
 	async createReader(opts) {
 		const defaults = {
 			readOnly: false,
@@ -44,6 +46,28 @@ export default class ReaderAdapter {
 				this.emit({ type: "annotationsDeleted", ids });
 			},
 			onChangeViewState: (state, primary) => {
+				if (state && !this.reader._state.splitType) {
+					this.secondaryViewInitialized = false;
+					this.reader._secondaryViewContainer.style.opacity = "0";
+				}
+
+				if (
+					state &&
+					!this.secondaryViewInitialized &&
+					this.reader._state.splitType
+				) {
+					this.adoptObsidianStyles(
+						window.OBSIDIAN_THEME_VARIABLES,
+						this.reader._secondaryView?._iframeWindow.document
+					);
+					this.applyColorScheme(
+						opts.colorScheme,
+						this.reader._secondaryView?._iframeWindow.document
+					);
+					this.reader._secondaryViewContainer.style.opacity = "1";
+					this.secondaryViewInitialized = true;
+				}
+
 				this.emit({ type: "viewStateChanged", state, primary });
 			},
 			onOpenTagsPopup: (annotationID, left, top) => {
@@ -113,8 +137,6 @@ export default class ReaderAdapter {
 		}
 
 		this.reader = new Reader(config);
-		this.reader.enableAddToNote(true);
-
 		await this.reader.initializedPromise;
 		window._reader = this.reader;
 
@@ -123,25 +145,10 @@ export default class ReaderAdapter {
 			window.OBSIDIAN_THEME_VARIABLES,
 			this.reader._primaryView._iframeWindow.document
 		);
-		this.applyColorScheme(opts.colorScheme);
-		this.reader._primaryViewContainer.style.opacity = "1";
-
-		this.emit({ type: "ready" });
-
-		// //test editor
-		// const editor = document.querySelector("#sidebarContent");
-		// editor.empty();
-		// testfunc("#sidebarContent");
-	}
-
-	applyColorScheme(colorScheme) {
-		document.documentElement.classList.toggle(
-			"obsidian-theme-dark",
-			colorScheme === "dark"
-		);
-		document.documentElement.classList.toggle(
-			"obsidian-theme-light",
-			colorScheme === "light"
+		this.applyColorScheme(opts.colorScheme, document);
+		this.applyColorScheme(
+			opts.colorScheme,
+			this.reader._primaryView._iframeWindow.document
 		);
 
 		const newCustomThemes = this.reader._state.customThemes?.map(
@@ -155,21 +162,39 @@ export default class ReaderAdapter {
 
 		this.reader.setCustomThemes(newCustomThemes);
 
-		// Ask the Reader instance to update theme if API exists; otherwise set vars into its iframe safely.
-		const win = this.reader?._primaryView?._iframeWindow;
-		if (win?.document?.documentElement) {
-			win.document.documentElement.classList.toggle(
-				"obsidian-theme-dark",
-				colorScheme === "dark"
+		this.reader._primaryViewContainer.style.opacity = "1";
+
+		if (this.reader._state.splitType) {
+			this.adoptObsidianStyles(
+				window.OBSIDIAN_THEME_VARIABLES,
+				this.reader._secondaryView?._iframeWindow.document
 			);
-			win.document.documentElement.classList.toggle(
-				"obsidian-theme-light",
-				colorScheme === "light"
+			this.applyColorScheme(
+				opts.colorScheme,
+				this.reader._secondaryView?._iframeWindow.document
 			);
+			this.reader._secondaryViewContainer.style.opacity = "1";
+			this.secondaryViewInitialized = true;
 		}
+
+		this.emit({ type: "ready" });
+	}
+
+	applyColorScheme(colorScheme, document) {
+		if (!document) return;
+
+		document.documentElement.classList.toggle(
+			"obsidian-theme-dark",
+			colorScheme === "dark"
+		);
+		document.documentElement.classList.toggle(
+			"obsidian-theme-light",
+			colorScheme === "light"
+		);
 	}
 
 	adoptObsidianStyles(obsidianThemeVariables, document) {
+		if (!obsidianThemeVariables || !document) return;
 		const varsStyle = document.createElement("style");
 		varsStyle.textContent = Object.entries(obsidianThemeVariables)
 			.map(
@@ -275,14 +300,15 @@ export default class ReaderAdapter {
 	}
 
 	async updateAnnotation(annotation) {
-		const existingAnnotation = this.reader._annotationManager._getAnnotationByID(
-			annotation.id
-		);
+		const existingAnnotation =
+			this.reader._annotationManager._getAnnotationByID(annotation.id);
 		console.log("Updating annotation:", existingAnnotation, annotation);
-		this.reader._annotationManager.updateAnnotations([{
-			...existingAnnotation,
-			...annotation
-		}]);
+		this.reader._annotationManager.updateAnnotations([
+			{
+				...existingAnnotation,
+				...annotation,
+			},
+		]);
 	}
 
 	async navigate(location) {

@@ -114,6 +114,16 @@ export function createViewContextMenu(reader, params) {
 					label: reader._getString('general-copy'),
 					disabled: !reader.canCopy,
 					onCommand: () => reader.copy()
+				},
+				{
+					label: "Copy Link to Selection",
+					disabled: !reader.canCopy,
+					onCommand: () => {
+						console.log(reader);
+						console.log(this._iframeWindow.getSelection());
+						console.log(reader._iframeWindow.getSelection());
+						navigator.clipboard.writeText(`obsidian://zotero-reader?file=${window.OBSIDIAN_SOURCE_PATH}`);
+					}
 				}
 			],
 			[
