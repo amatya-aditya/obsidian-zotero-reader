@@ -119,10 +119,45 @@ export function createViewContextMenu(reader, params) {
 					label: "Copy Link to Selection",
 					disabled: !reader.canCopy,
 					onCommand: () => {
-						console.log(reader);
-						console.log(this._iframeWindow.getSelection());
-						console.log(reader._iframeWindow.getSelection());
-						navigator.clipboard.writeText(`obsidian://zotero-reader?file=${window.OBSIDIAN_SOURCE_PATH}`);
+						let currentView = reader._lastViewPrimary ? reader._primaryView : reader._secondaryView;
+						let navigationData = {};
+
+						let position = null;
+						let selectedText = "";
+
+						// Get current selection position based on view type
+						if (reader._type === 'pdf') {
+							// For PDF, get position from current selection ranges
+							if (currentView._selectionRanges && currentView._selectionRanges.length > 0) {
+								// Use the PDFPosition from selection ranges
+								position = currentView._selectionRanges[0].position;
+								selectedText = currentView._selectionRanges[0].text || "";
+							}
+						} else if (reader._type === 'epub' || reader._type === 'snapshot') {
+							// For EPUB/Snapshot, convert current selection to Selector
+							let selection = currentView._iframeWindow.getSelection();
+							if (selection && selection.rangeCount > 0) {
+								let range = selection.getRangeAt(0);
+								let selector = currentView.toSelector(range);
+								if (selector) {
+									// Position is the Selector itself for non-PDF views
+									position = selector;
+									selectedText = selection.toString();
+								}
+							}
+						}
+
+						// Add position to link data if we found one
+						if (position) {
+							navigationData.position = position;
+							navigationData.selectedText = selectedText;
+						}
+
+						// Create the link with encoded position data
+						let encodedData = encodeURIComponent(JSON.stringify(navigationData));
+						let link = `obsidian://zotero-reader?file=${encodeURIComponent(window.OBSIDIAN_SOURCE_PATH)}&navigation=${encodedData}`;
+
+						navigator.clipboard.writeText(link);
 					}
 				}
 			],
@@ -197,6 +232,7 @@ export function createAnnotationContextMenu(reader, params) {
 	let readOnly = reader._state.readOnly || annotations.some(x => x.readOnly);
 	let currentColor = annotations.length === 1 && annotations[0].color;
 	let colors = ANNOTATION_COLORS.slice();
+	console.log("params.ids",annotations, params.ids);
 	if (annotations.every(x => ['text', 'ink'].includes(x.type))) {
 		colors.push(...EXTRA_INK_AND_TEXT_COLORS);
 	}
@@ -212,6 +248,27 @@ export function createAnnotationContextMenu(reader, params) {
 					persistent: true,
 					onCommand: () => reader._onAddToNote(annotations)
 				}
+			],
+			[
+				{
+					label: "Copy Link to Annotation",
+					disabled: annotations.length !== 1,
+					onCommand: () => {
+							// Create the link with encoded annotation data
+							let encodedData = encodeURIComponent(JSON.stringify({annotationID: annotations[0].id}));
+							let link = `[${annotations[0].text}](obsidian://zotero-reader?file=${encodeURIComponent(window.OBSIDIAN_SOURCE_PATH)}&navigation=${encodedData})`;
+							navigator.clipboard.writeText(link);
+					}
+				},
+				{
+					label: "Copy Link to Obsidian Callout",
+					disabled: annotations.length !== 1,
+					onCommand: () => {
+							// Create the link with encoded annotation data
+							let link = `![[${window.OBSIDIAN_SOURCE_PATH}#^${annotations[0].id}]]`;
+							navigator.clipboard.writeText(link);
+					}
+				},
 			],
 			colors.map(([label, color]) => ({
 				label: reader._getString(label),

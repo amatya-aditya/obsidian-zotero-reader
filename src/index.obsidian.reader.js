@@ -313,7 +313,7 @@ export default class ReaderAdapter {
 
 	async navigate(location) {
 		if (this.reader) {
-			this.reader.navigate(location);
+			this.reader.navigate(location, { behavior: "smooth" });
 		}
 	}
 
