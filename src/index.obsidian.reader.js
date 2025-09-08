@@ -66,7 +66,7 @@ export default class ReaderAdapter {
 				annotations,
 				fromText
 			) => {
-				this.emit({
+				console.log({
 					type: "setDataTransferAnnotations",
 					dataTransfer,
 					annotations,

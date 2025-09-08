@@ -227,8 +227,9 @@
 			+ 6 * var(--note-font-size) * calc(4 / 3)
 		) !important;
 		max-height: 10 * 16px + 8px;
-		overflow-y: auto;
+		padding-inline-end: 0px;
 	}
+	
 }
 
 .footnote-popup {

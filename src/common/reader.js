@@ -1615,16 +1615,10 @@ class Reader {
 		// annotations = annotations.filter(x => x.type !== 'ink');
 		let plainText = annotations.map((annotation) => {
 			let formatted = '';
-			if (annotation.text) {
-				let text = annotation.text.trim();
-				formatted = fromText ? text : '“' + text + '”';
-			}
-			let comment = annotation.comment?.trim();
-			if (comment) {
-				if (formatted) {
-					formatted += comment.includes('\n') ? '\n' : ' ';
-				}
-				formatted += comment;
+			if (fromText) {
+				formatted = annotation.text.trim();
+			}else {
+				formatted = `![[${window.OBSIDIAN_SOURCE_PATH}#^${annotation.id}]]`;
 			}
 			return formatted;
 		}).filter(x => x).join('\n\n');

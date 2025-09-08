@@ -277,7 +277,8 @@ await (async () => {
 	const connection = connect({
 		messenger,
 		methods: {
-			async initReader(opts) {
+			async initReader(obsidianSourceFilePath, opts) {
+				window.OBSIDIAN_SOURCE_PATH = obsidianSourceFilePath;
 				await adapter.createReader(opts);
 				return { ok: true };
 			},
@@ -299,5 +300,6 @@ await (async () => {
 	// Event pipe child → parent
 	const parent = await connection.promise;
 	adapter.on((evt) => parent.handleEvent(evt));
+
 	window.obsidianAdapter = parent;
 })();
