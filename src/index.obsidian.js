@@ -283,7 +283,7 @@ await (async () => {
 				return { ok: true };
 			},
 			async setColorScheme(colorScheme) {
-				adapter.applyColorScheme(colorScheme);
+				adapter.applyColorSchemeForAll(colorScheme);
 				return { ok: true };
 			},
 			async updateAnnotation(annotation) {

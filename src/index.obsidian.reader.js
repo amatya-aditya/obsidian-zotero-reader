@@ -180,6 +180,12 @@ export default class ReaderAdapter {
 		this.emit({ type: "ready" });
 	}
 
+	applyColorSchemeForAll(colorScheme) {
+		this.applyColorScheme(colorScheme, document);
+		this.applyColorScheme(colorScheme, this.reader?._primaryView?._iframeWindow.document);
+		this.applyColorScheme(colorScheme, this.reader?._secondaryView?._iframeWindow.document);
+	}
+
 	applyColorScheme(colorScheme, document) {
 		if (!document) return;
 
@@ -191,6 +197,17 @@ export default class ReaderAdapter {
 			"obsidian-theme-light",
 			colorScheme === "light"
 		);
+
+		const newCustomThemes = this.reader._state.customThemes?.map(
+			(theme) => {
+				if (theme.id === "obsidian") {
+					return this.generateObsidianTheme();
+				}
+				return theme;
+			}
+		);
+
+		this.reader.setCustomThemes(newCustomThemes);
 	}
 
 	adoptObsidianStyles(obsidianThemeVariables, document) {
