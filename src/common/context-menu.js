@@ -155,7 +155,7 @@ export function createViewContextMenu(reader, params) {
 
 						// Create the link with encoded position data
 						let encodedData = encodeURIComponent(JSON.stringify(navigationData));
-						let link = `obsidian://zotero-reader?file=${encodeURIComponent(window.OBSIDIAN_SOURCE_PATH)}&navigation=${encodedData}`;
+						let link = `[${selectedText}](obsidian://zotero-reader?file=${encodeURIComponent(window.OBSIDIAN_SOURCE_PATH)}&navigation=${encodedData})`;
 
 						navigator.clipboard.writeText(link);
 					}
