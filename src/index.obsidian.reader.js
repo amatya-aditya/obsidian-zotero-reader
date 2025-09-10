@@ -29,7 +29,6 @@ export default class ReaderAdapter {
 			sidebarOpen: true,
 			toolbarPlaceholderWidth: 0,
 			showAnnotations: true,
-			customThemes: [this.generateObsidianTheme()],
 			onOpenContextMenu: (params) => {
 				this.reader.openContextMenu(params);
 			},
@@ -131,6 +130,7 @@ export default class ReaderAdapter {
 
 		// Build data argument from Source
 		const config = { ...defaults, ...opts };
+		config.customThemes = [this.generateObsidianTheme(), ...(opts.customThemes || [])];
 
 		if (
 			!config.data ||
