@@ -21,4 +21,9 @@
 		inset-block: 0;
 		inset-inline: 0;
 	}
+
+	body.sidebar-position-end & {
+		inset-inline-start: revert;
+		inset-inline-end: var(--sidebar-width);
+	}
 }

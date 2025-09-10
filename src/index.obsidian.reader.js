@@ -128,10 +128,10 @@ export default class ReaderAdapter {
 			}
 		};
 
-		// Build data argument from Source
 		const config = { ...defaults, ...opts };
 		config.customThemes = [this.generateObsidianTheme(), ...(opts.customThemes || [])];
-
+		
+		// Build data argument from Source
 		if (
 			!config.data ||
 			!(config.data.buf || config.data.url) ||
@@ -141,7 +141,13 @@ export default class ReaderAdapter {
 				"Reader data is required (one of data.buf and data.url, and data.type must be provided in options)"
 			);
 		}
+		
+		// Apply sidebar position
+		if (config.sidebarPosition === "end") {
+			document.body.classList.toggle("sidebar-position-end", true);
+		}
 
+		// Create the reader
 		this.reader = new Reader(config);
 		await this.reader.initializedPromise;
 		window._reader = this.reader;

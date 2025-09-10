@@ -2,6 +2,13 @@ body.sidebar-open {
 	#split-view, .split-view {
 		inset-inline-start: var(--sidebar-width);
 	}
+
+	&.sidebar-position-end {
+		#split-view, .split-view {
+			inset-inline-start: 0px;
+			inset-inline-end: var(--sidebar-width);
+		}
+	}
 }
 
 #sidebarContainer {
@@ -16,6 +23,19 @@ body.sidebar-open {
 	border-right: var(--divider-width) solid var(--divider-color);
 	background-color: var(--background-primary);
 
+	body.sidebar-position-end & {
+		left: revert;
+		right: calc(-1 * var(--sidebar-width));
+		border-right: none;
+		border-left: var(--divider-width) solid var(--divider-color);
+	}
+
+	body.sidebar-open.sidebar-position-end & {
+		visibility: visible;
+		right: 0;
+		left: revert;
+	}
+
 	body.sidebar-open & {
 		visibility: visible;
 		left: 0;
@@ -27,6 +47,10 @@ body.sidebar-open {
 		height: 40px;
 		align-items: center;
 		padding: 0 8px;
+
+		body.sidebar-position-end & {
+			flex-direction: row-reverse;
+		}
 
 		.start {
 			display: flex;

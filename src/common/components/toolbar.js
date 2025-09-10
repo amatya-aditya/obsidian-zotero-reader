@@ -75,14 +75,15 @@ function Toolbar(props) {
 	return (
 		<div className="toolbar" data-tabstop={1} role="application">
 			<div className="start">
-				<button
+				{!document.body.classList.contains('sidebar-position-end') && (<><button
 					id="sidebarToggle"
 					className="toolbar-button sidebar-toggle"
 					title={l10n.getString('reader-toggle-sidebar')}
 					tabIndex={-1}
 					onClick={handleSidebarButtonClick}
 				><IconSidebar/></button>
-				<div className="divider"/>
+				<div className="divider"/></>
+				)}
 				<button
 					id="zoomOut"
 					className="toolbar-button zoomOut"
@@ -261,6 +262,13 @@ function Toolbar(props) {
 						>{props.stackedView ? <IconSidebarBottom/> : <IconSidebar className="standard-view"/>}</button>
 					</Fragment>
 				)}
+				{document.body.classList.contains('sidebar-position-end') && (<button
+					id="sidebarToggle"
+					className="toolbar-button sidebar-toggle"
+					title={l10n.getString('reader-toggle-sidebar')}
+					tabIndex={-1}
+					onClick={handleSidebarButtonClick}
+				><IconSidebar/></button>)}
 			</div>
 		</div>
 	);

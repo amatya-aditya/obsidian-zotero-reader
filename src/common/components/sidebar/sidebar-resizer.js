@@ -23,7 +23,12 @@ function SidebarResizer(props) {
 			return;
 		}
 		let width = event.clientX;
-		if (document.documentElement.dir === 'rtl') {
+		if (document.documentElement.dir === 'rtl' || 
+			(
+				document.documentElement.dir === 'ltr' &&
+				document.body.classList.contains('sidebar-position-end')
+			)
+		) {
 			width = window.innerWidth - width;
 		}
 		let maxWidth = Math.floor(window.innerWidth / 2);
