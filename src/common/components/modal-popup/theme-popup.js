@@ -70,6 +70,7 @@ function ThemePopup({ params, customThemes, colorScheme, lightTheme, darkTheme, 
 
 	let nameRef = useRef();
 	let [label, setLabel] = useState(params.theme?.label || '');
+	let [id, setId] = useState(params.theme?.id || '');
 	let [background, setBackground] = useState(params.theme?.background || bg);
 	let [foreground, setForeground] = useState(params.theme?.foreground || fg);
 
@@ -85,18 +86,8 @@ function ThemePopup({ params, customThemes, colorScheme, lightTheme, darkTheme, 
 		if (params.theme) {
 			theme = { ...params.theme };
 		}
-		else {
-			let i = 1;
-			while (1) {
-				let id = 'custom' + i;
-				if (!map.has(id)) {
-					theme.id = id;
-					break;
-				}
-				i++;
-			}
-		}
 
+		theme.id = id.trim();
 		theme.label = label.trim();
 		theme.background = background;
 		theme.foreground = foreground;
@@ -112,6 +103,20 @@ function ThemePopup({ params, customThemes, colorScheme, lightTheme, darkTheme, 
 
 	function handleInput(event) {
 		setLabel(event.target.value);
+		let newId = event.target.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+
+		if (customThemes.find(t => t.id === newId)) { 
+			let i = 2;
+			while (1) {
+				let _newId = newId + i;
+				if (!customThemes.find(t => t.id === _newId)) {
+					newId = _newId;
+					break;
+				}
+				i++;
+			}
+		}
+		setId(newId);
 	}
 
 	function handleBackgroundChange(color) {
@@ -139,6 +144,10 @@ function ThemePopup({ params, customThemes, colorScheme, lightTheme, darkTheme, 
 		<DialogPopup className="theme-popup">
 			<form onSubmit={handleSubmit}>
 				<div className="grid">
+					<label>Theme ID:</label>
+					<div className="input">
+						<p>{id}</p>
+					</div>
 					<label>{l10n.getString('reader-theme-name')}</label>
 					<div className="input">
 						<input

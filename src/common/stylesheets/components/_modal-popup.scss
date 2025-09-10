@@ -477,8 +477,6 @@
 
 			&:focus {
 				outline: none;
-				border-color: rgba(0, 0, 0, 0);
-				box-shadow: 0 0 0 var(--width-focus-border) var(--color-focus-search);
 			}
 		}
 	}
@@ -519,8 +517,6 @@
 
 			&:focus {
 				outline: none;
-				border-color: rgba(0, 0, 0, 0);
-				box-shadow: 0 0 0 var(--width-focus-border) var(--color-focus-search);
 			}
 		}
 	}

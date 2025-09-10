@@ -30,8 +30,6 @@ export default class ReaderAdapter {
 			toolbarPlaceholderWidth: 0,
 			showAnnotations: true,
 			customThemes: [this.generateObsidianTheme()],
-			lightTheme: "obsidian",
-			darkTheme: "obsidian",
 			onOpenContextMenu: (params) => {
 				this.reader.openContextMenu(params);
 			},
@@ -118,9 +116,17 @@ export default class ReaderAdapter {
 				this.emit({ type: "textSelectionAnnotationModeChanged", mode });
 			},
 			onSaveCustomThemes: (customThemes) => {
+				this.reader.setCustomThemes(customThemes);
 				this.emit({ type: "saveCustomThemes", customThemes });
-				console.log("Custom themes saved:", customThemes);
 			},
+			onSetLightTheme: (theme) => {
+				this.reader.setLightTheme(theme);
+				this.emit({ type: "setLightTheme", theme });
+			},
+			onSetDarkTheme: (theme) => {
+				this.reader.setDarkTheme(theme);
+				this.emit({ type: "setDarkTheme", theme });
+			}
 		};
 
 		// Build data argument from Source
