@@ -130,7 +130,9 @@ export default class ReaderAdapter {
 
 		const config = { ...defaults, ...opts };
 		config.customThemes = [this.generateObsidianTheme(), ...(opts.customThemes || [])];
-		
+		config.lightTheme = opts.lightTheme || "original_fallback";
+		config.darkTheme = opts.darkTheme || "original_fallback";
+
 		// Build data argument from Source
 		if (
 			!config.data ||
