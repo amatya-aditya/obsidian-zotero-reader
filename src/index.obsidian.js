@@ -277,8 +277,8 @@ await (async () => {
 	const connection = connect({
 		messenger,
 		methods: {
-			async initReader(obsidianSourceFilePath, opts) {
-				window.OBSIDIAN_SOURCE_PATH = obsidianSourceFilePath;
+			async initReader(mdSourceFilePath, opts) {
+				window.MD_SOURCE_PATH = mdSourceFilePath;
 				await adapter.createReader(opts);
 				return { ok: true };
 			},

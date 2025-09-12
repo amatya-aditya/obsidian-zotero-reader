@@ -1618,7 +1618,7 @@ class Reader {
 			if (fromText) {
 				formatted = annotation.text.trim();
 			}else {
-				formatted = `![[${window.OBSIDIAN_SOURCE_PATH}#^${annotation.id}]]`;
+				formatted = `![[${window.MD_SOURCE_PATH}#^${annotation.id}]]`;
 			}
 			return formatted;
 		}).filter(x => x).join('\n\n');
