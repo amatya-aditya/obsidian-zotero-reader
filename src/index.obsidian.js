@@ -152,7 +152,6 @@ import ReaderAdapter from "./index.obsidian.reader.js";
 	).filter(
 		(sheet) =>
 			sheet.href &&
-			sheet.href.startsWith(window.location.origin) &&
 			sheet.href.includes("app.css")
 	);
 
