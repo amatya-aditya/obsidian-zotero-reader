@@ -28,7 +28,19 @@ import { connect, WindowMessenger } from "penpal";
 		const childAPI = {
 			async initReader(opts) {
 				readerAdapter.on((evt) => ObsidianBridge.handleEvent(evt));
-				await readerAdapter.createReader(opts);
+				// If the parent passed us an ArrayBuffer, we need to transfer the realm under us
+				if (opts.data.buf) {
+					const childCopy = new Uint8Array(opts.data.buf.length);
+					childCopy.set(opts.data.buf);
+					delete opts.data.buf;
+
+					await readerAdapter.createReader({
+						...opts,
+						data: { buf: childCopy, url: opts.data.url },
+					});
+				} else {
+					await readerAdapter.createReader(opts);
+				}
 				return true;
 			},
 			async setColorScheme(colorScheme) {
