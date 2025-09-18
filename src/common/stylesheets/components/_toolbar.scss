@@ -18,6 +18,7 @@
 	min-width: 1px;
 	background: var(--background-primary);
 	border-bottom: 1px solid var(--background-modifier-border);
+	overflow-x: auto;
 
 	.start,
 	.center,
@@ -56,6 +57,8 @@
 		color: var(--text-normal);
 		margin-left: 0;
 		display: flex;
+		white-space: nowrap;
+		padding-inline-end: 10px;
 
 		div {
 			position: absolute;

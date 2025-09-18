@@ -167,8 +167,8 @@ function Toolbar(props) {
 						onBlur={handlePageNumberBlur}
 					/>)}
 				{props.pageLabel && (
-					<span id="numPages">&nbsp;<div>{!(props.type === 'pdf' && props.pageIndex + 1 == props.pageLabel)
-						&& (props.pageIndex + 1)} / {props.pagesCount}</div></span>
+					<span id="numPages">&nbsp;<span>{!(props.type === 'pdf' && props.pageIndex + 1 == props.pageLabel)
+						&& (props.pageIndex + 1)} / {props.pagesCount}</span></span>
 				)}
 			</div>
 			<div className="center tools">
