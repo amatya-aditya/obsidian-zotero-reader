@@ -216,12 +216,10 @@
 				}
 
 				const cssText = cssChunks.join("\n");
-				const constructed = new document.defaultView.CSSStyleSheet();
-				constructed.replaceSync(cssText);
-				document.adoptedStyleSheets = [
-					...document.adoptedStyleSheets,
-					constructed,
-				];
+
+				const style = document.createElement("style");
+				style.textContent = cssText;
+				document.head.appendChild(style);
 			})();
 		</script>
 
@@ -304,12 +302,7 @@
 					)
 					.join("");
 
-				const constructed = new document.defaultView.CSSStyleSheet();
-				constructed.replaceSync(varsStyle.textContent);
-				document.adoptedStyleSheets = [
-					...document.adoptedStyleSheets,
-					constructed,
-				];
+				document.head.appendChild(varsStyle);
 
 				const theme = getComputedStyle(
 					window.parent.document.body
