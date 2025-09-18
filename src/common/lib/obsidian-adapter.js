@@ -9,7 +9,7 @@ let registered = false;
  *
  * Throws if the parent hasn’t installed the bootstrap yet.
  */
-export function InitBridge() {
+export function initBridge() {
 	const fn = window.__OBSIDIAN_BRIDGE__;
 	if (typeof fn !== "function") {
 		throw new Error(
@@ -33,7 +33,7 @@ export function InitBridge() {
  * Complete the handshake by giving the Parent our ChildAPI.
  * Fire-and-forget; still returns a Promise for callers that care.
  */
-export function RegisterChildAPI(childAPI) {
+export function registerChildAPI(childAPI) {
 	if (registered) return Promise.resolve();
 	if (!registerRef || !tokenRef) {
 		return Promise.reject(

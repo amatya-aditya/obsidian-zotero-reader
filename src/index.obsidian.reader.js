@@ -39,6 +39,9 @@ export default class ZoteroReaderAdapter {
 				console.log("Save annotations", annotations);
 				this.emit({ type: "annotationsSaved", annotations });
 			},
+			onUpdateAnnotation: (annotation) => {
+				this.emit({ type: "annotationUpdated", annotation });
+			},
 			onDeleteAnnotations: (ids) => {
 				this.emit({ type: "annotationsDeleted", ids });
 			},
@@ -198,8 +201,6 @@ export default class ZoteroReaderAdapter {
 		this.applyColorScheme(colorScheme, this.reader?._primaryView?._iframeWindow.document);
 		this.applyColorScheme(colorScheme, this.reader?._secondaryView?._iframeWindow.document);
 
-		
-
 		const newCustomThemes = this.reader._state.customThemes?.map(
 			(theme) => {
 				if (theme.id === "obsidian") {
@@ -330,18 +331,6 @@ export default class ZoteroReaderAdapter {
 			id: "obsidian",
 			label: "Obsidian",
 		};
-	}
-
-	async updateAnnotation(annotation) {
-		const existingAnnotation =
-			this.reader._annotationManager._getAnnotationByID(annotation.id);
-		console.log("Updating annotation:", existingAnnotation, annotation);
-		this.reader._annotationManager.updateAnnotations([
-			{
-				...existingAnnotation,
-				...annotation,
-			},
-		]);
 	}
 
 	async navigate(location) {

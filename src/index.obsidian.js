@@ -1,8 +1,8 @@
 import ZoteroReaderAdapter from "./index.obsidian.reader.js";
 import {
-	InitBridge,
+	initBridge,
 	ObsidianBridge,
-	RegisterChildAPI,
+	registerChildAPI,
 } from "./common/lib/obsidian-adapter";
 import { connect, WindowMessenger } from "penpal";
 
@@ -22,7 +22,7 @@ import { connect, WindowMessenger } from "penpal";
 	});
 	const parent = await connection.promise;
 	parent.shakehand().then(() => {
-		InitBridge();
+		initBridge();
 
 		const readerAdapter = new ZoteroReaderAdapter();
 		const childAPI = {
@@ -35,16 +35,12 @@ import { connect, WindowMessenger } from "penpal";
 				readerAdapter.applyColorSchemeForAll(colorScheme);
 				return true;
 			},
-			async updateAnnotation(annotation) {
-				await readerAdapter.updateAnnotation(annotation);
-				return true;
-			},
 			async navigate(location) {
 				readerAdapter.navigate(location);
 				return true;
 			},
 		};
 
-		RegisterChildAPI(childAPI);
+		registerChildAPI(childAPI);
 	});
 })();

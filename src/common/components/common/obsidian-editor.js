@@ -5,19 +5,26 @@ import cx from "classnames";
 function ObsidianEditor(props) {
 	let editorRef = useRef();
 	const editorId = `${props.id}_${useId()}`;
+	const [editor, setEditor] = React.useState(null);
 
 	const options = {
 		value: props.text,
 		placeholder: props.placeholder,
 		cls: "content",
-		onChange: (update) => props.onChange(update.state.doc.toString())
+		onChange: (update) => props.onChange(update.state.doc.toString()),
 	};
 
 	useEffect(() => {
-		editorRef.current.empty();
-		ObsidianBridge.createAnnotationEditor(editorId, options);
-		editorRef.current = document.getElementById(editorId);
+		setEditor(
+			ObsidianBridge.createAnnotationEditor(editorRef.current, options)
+		);
 	}, []);
+
+	useEffect(() => {
+		if (editor) {
+			editor.set(props.text);
+		}
+	}, [props.text, editor]);
 
 	return (
 		<div className={cx("editor", { "read-only": props.readOnly })}>
