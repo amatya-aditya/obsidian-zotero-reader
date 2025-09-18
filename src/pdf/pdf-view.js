@@ -162,7 +162,6 @@ class PDFView {
 			this._iframe.src = ObsidianBridge.getBlobUrlMap()['pdf/web/viewer.html'];
 		}
 		 else {
-
 			this._iframe.srcdoc = ObsidianBridge.getBlobUrlMap()['pdf/web/viewer.html.srcdoc'];
 		}
 

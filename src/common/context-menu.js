@@ -6,6 +6,7 @@ import {
 	TEXT_ANNOTATION_FONT_SIZE_STEPS
 } from './defines';
 import { ObsidianBridge } from './lib/obsidian-adapter.js';
+import * as nunjucks from "nunjucks";
 
 function appendCustomItemGroups(name, reader, params) {
 	let itemGroups = [];
@@ -154,12 +155,19 @@ export function createViewContextMenu(reader, params) {
 							navigationData.selectedText = selectedText;
 						}
 
-						// Create the link with encoded position data
+						const template = ObsidianBridge.getPluginSettings().copyLinkToSelectionTemplate;
+
 						let encodedData = encodeURIComponent(JSON.stringify(navigationData));
 
-						let link = `[${selectedText}](obsidian://zotero-reader?file=${encodeURIComponent(ObsidianBridge.getMarkdownSourceFilePath())}&navigation=${encodedData})`;
+						const templateContext = {
+							selectedText: selectedText,
+							pageLabel: (position.pageIndex !== null) ? position.pageIndex + 1 : '',
+							link: `obsidian://zotero-reader?file=${encodeURIComponent(ObsidianBridge.getMdSourceFilePath())}&navigation=${encodedData}`
+						}
 
-						navigator.clipboard.writeText(link);
+						const env = new nunjucks.Environment(undefined, { autoescape: false });
+						const formatted = env.renderString(template, templateContext).trim();
+						navigator.clipboard.writeText(formatted);
 					}
 				}
 			],
@@ -256,18 +264,28 @@ export function createAnnotationContextMenu(reader, params) {
 					label: "Copy Link to Annotation",
 					disabled: annotations.length !== 1,
 					onCommand: () => {
-							// Create the link with encoded annotation data
-							let encodedData = encodeURIComponent(JSON.stringify({annotationID: annotations[0].id}));
-							let link = `[${annotations[0].text}](obsidian://zotero-reader?file=${encodeURIComponent(ObsidianBridge.getMarkdownSourceFilePath())}&navigation=${encodedData})`;
-							navigator.clipboard.writeText(link);
+						const template = ObsidianBridge.getPluginSettings().copyLinkToAnnotationTemplate;
+						
+						const encodedData = encodeURIComponent(JSON.stringify({annotationID: annotations[0].id}));
+						const templateContext = {
+							annotationText: annotations[0].text,
+							annotationComment: annotations[0].comment,
+							annotationType: annotations[0].type,
+							pageLabel: annotations[0].pageLabel,
+							link: `obsidian://zotero-reader?file=${encodeURIComponent(ObsidianBridge.getMdSourceFilePath())}&navigation=${encodedData}`
+						}
+						
+						const env = new nunjucks.Environment(undefined, {autoescape: false});
+						const formatted = env.renderString(template, templateContext).trim();
+						navigator.clipboard.writeText(formatted);
 					}
 				},
 				{
-					label: "Copy Link to Obsidian Callout",
+					label: "Copy Link to Obsidian Block",
 					disabled: annotations.length !== 1,
 					onCommand: () => {
 							// Create the link with encoded annotation data
-							let link = `![[${ObsidianBridge.getMarkdownSourceFilePath()}#^${annotations[0].id}]]`;
+							let link = `![[${ObsidianBridge.getMdSourceFilePath()}#^${annotations[0].id}]]`;
 							navigator.clipboard.writeText(link);
 					}
 				},

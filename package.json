@@ -25,6 +25,7 @@
 		"epubjs": "file:epubjs/epub.js",
 		"luaparse": "^0.3.1",
 		"mathjax-full": "^3.2.2",
+		"nunjucks": "^3.2.4",
 		"penpal": "^7.0.4",
 		"postcss-selector-parser": "^6.0.13",
 		"prop-types": "^15.8.1",

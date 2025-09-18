@@ -333,6 +333,12 @@ export default class ZoteroReaderAdapter {
 		};
 	}
 
+	async refreshAnnotations(annotations) {
+		if (this.reader) {
+			this.reader.setAnnotations(annotations);
+		}
+	}
+
 	async navigate(location) {
 		if (this.reader) {
 			this.reader.navigate(location, { behavior: "smooth" });

@@ -26,6 +26,7 @@ import { debounce } from './lib/debounce';
 import { flushSync } from 'react-dom';
 import { addFTL, getLocalizedString } from '../fluent';
 import { ObsidianBridge } from './lib/obsidian-adapter';
+import * as nunjucks from "nunjucks";
 
 // Compute style values for usage in views (CSS variables aren't sufficient for that)
 // Font family is necessary for text annotations
@@ -1614,12 +1615,30 @@ class Reader {
 			setMultiDragPreview(dataTransfer);
 		}
 		// annotations = annotations.filter(x => x.type !== 'ink');
+		console.log(fromText,annotations);
 		let plainText = annotations.map((annotation) => {
 			let formatted = '';
-			if (fromText) {
+			if (fromText || !annotations[0].id) {
 				formatted = annotation.text.trim();
-			}else {
-				formatted = `![[${ObsidianBridge.getMarkdownSourceFilePath()}#^${annotation.id}]]`;
+			}
+			else {
+				if(ObsidianBridge.getPluginSettings().defaultAnnotationCopyType === 'block') {
+					formatted = `![[${ObsidianBridge.getMdSourceFilePath()}#^${annotation.id}]]`;
+				} 
+				else {
+					const template = ObsidianBridge.getPluginSettings().copyLinkToAnnotationTemplate;
+
+					const env = new nunjucks.Environment(undefined, {autoescape: false});
+					const templateContext = {
+						annotationText: annotation.text,
+						annotationComment: annotation.comment,
+						annotationType: annotation.type,
+						pageLabel: annotation.pageLabel,
+						link: encodeURIComponent(ObsidianBridge.getMdSourceFilePath()) + `#^${annotation.id}`,
+					}
+
+					formatted = env.renderString(template, templateContext).trim();
+				}
 			}
 			return formatted;
 		}).filter(x => x).join('\n\n');

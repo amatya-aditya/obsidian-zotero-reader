@@ -35,6 +35,10 @@ import { connect, WindowMessenger } from "penpal";
 				readerAdapter.applyColorSchemeForAll(colorScheme);
 				return true;
 			},
+			async refreshAnnotations(annotations) {
+				readerAdapter.refreshAnnotations(annotations);
+				return true;
+			},
 			async navigate(location) {
 				readerAdapter.navigate(location);
 				return true;
