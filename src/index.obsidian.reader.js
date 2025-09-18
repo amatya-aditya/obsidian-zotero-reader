@@ -6,7 +6,7 @@ import Reader from "./common/reader";
  * -----------------------------------------------------------
  */
 
-export default class ReaderAdapter {
+export default class ZoteroReaderAdapter {
 	reader;
 	listeners = new Set();
 
@@ -80,7 +80,6 @@ export default class ReaderAdapter {
 				this.emit({ type: "sidebarToggled", open });
 			},
 			onChangeSidebarWidth: (width) => {
-				this.emit({ type: "sidebarWidthChanged", width });
 			},
 			onSetDataTransferAnnotations: (
 				dataTransfer,

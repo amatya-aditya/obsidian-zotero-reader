@@ -1,4 +1,5 @@
 import React, { useId, useEffect, useRef } from "react";
+import { ObsidianBridge } from "../../lib/obsidian-adapter";
 import cx from "classnames";
 
 function ObsidianEditor(props) {
@@ -9,13 +10,14 @@ function ObsidianEditor(props) {
 		value: props.text,
 		placeholder: props.placeholder,
 		cls: "content",
+		onChange: (update) => props.onChange(update.state.doc.toString())
 	};
 
 	useEffect(() => {
 		editorRef.current.empty();
-		obsidianAdapter.createAnnotationEditor(editorId, props.id, options);
+		ObsidianBridge.createAnnotationEditor(editorId, options);
 		editorRef.current = document.getElementById(editorId);
-	}, [props.id]);
+	}, []);
 
 	return (
 		<div className={cx("editor", { "read-only": props.readOnly })}>

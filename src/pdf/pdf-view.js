@@ -70,6 +70,7 @@ import {
 } from './lib/path';
 import { History } from '../common/lib/history';
 import { FindState, PDFFindController } from './pdf-find-controller';
+import { ObsidianBridge } from '../common/lib/obsidian-adapter';
 
 class PDFView {
 	constructor(options) {
@@ -156,7 +157,14 @@ class PDFView {
 
 		this._iframe = document.createElement('iframe');
 		this._iframe.addEventListener('load', () => this._iframe.classList.add('loaded'));
-		this._iframe.src = globalThis.BLOB_URL_MAP['pdf/web/viewer.html'];
+
+		if (!ObsidianBridge.isAndroidApp()) {
+			this._iframe.src = ObsidianBridge.getBlobUrlMap()['pdf/web/viewer.html'];
+		}
+		 else {
+
+			this._iframe.srcdoc = ObsidianBridge.getBlobUrlMap()['pdf/web/viewer.html.srcdoc'];
+		}
 
 		this._iframeWindow = null;
 
@@ -183,7 +191,7 @@ class PDFView {
 			this._iframeWindow.PDFViewerApplicationOptions.set('disableHistory', true);
 			this._iframeWindow.PDFViewerApplicationOptions.set('enableXfa', false);
 			this._iframeWindow.PDFViewerApplicationOptions.set('annotationEditorMode', -1);
-			this._iframeWindow.PDFViewerApplicationOptions.set('workerSrc', globalThis.BLOB_URL_MAP["pdf/build/pdf.worker.mjs"]);
+			this._iframeWindow.PDFViewerApplicationOptions.set('workerSrc', ObsidianBridge.getBlobUrlMap()['pdf/build/pdf.worker.mjs']);
 		};
 
 		window.addEventListener('webviewerloaded', () => {

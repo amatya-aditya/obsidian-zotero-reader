@@ -25,6 +25,7 @@ import {
 import { debounce } from './lib/debounce';
 import { flushSync } from 'react-dom';
 import { addFTL, getLocalizedString } from '../fluent';
+import { ObsidianBridge } from './lib/obsidian-adapter';
 
 // Compute style values for usage in views (CSS variables aren't sufficient for that)
 // Font family is necessary for text annotations
@@ -1618,7 +1619,7 @@ class Reader {
 			if (fromText) {
 				formatted = annotation.text.trim();
 			}else {
-				formatted = `![[${window.MD_SOURCE_PATH}#^${annotation.id}]]`;
+				formatted = `![[${ObsidianBridge.getMarkdownSourceFilePath()}#^${annotation.id}]]`;
 			}
 			return formatted;
 		}).filter(x => x).join('\n\n');

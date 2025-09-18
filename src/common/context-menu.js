@@ -5,6 +5,7 @@ import {
 	INK_ANNOTATION_WIDTH_STEPS,
 	TEXT_ANNOTATION_FONT_SIZE_STEPS
 } from './defines';
+import { ObsidianBridge } from './lib/obsidian-adapter.js';
 
 function appendCustomItemGroups(name, reader, params) {
 	let itemGroups = [];
@@ -155,7 +156,8 @@ export function createViewContextMenu(reader, params) {
 
 						// Create the link with encoded position data
 						let encodedData = encodeURIComponent(JSON.stringify(navigationData));
-						let link = `[${selectedText}](obsidian://zotero-reader?file=${encodeURIComponent(window.MD_SOURCE_PATH)}&navigation=${encodedData})`;
+
+						let link = `[${selectedText}](obsidian://zotero-reader?file=${encodeURIComponent(ObsidianBridge.getMarkdownSourceFilePath())}&navigation=${encodedData})`;
 
 						navigator.clipboard.writeText(link);
 					}
@@ -256,7 +258,7 @@ export function createAnnotationContextMenu(reader, params) {
 					onCommand: () => {
 							// Create the link with encoded annotation data
 							let encodedData = encodeURIComponent(JSON.stringify({annotationID: annotations[0].id}));
-							let link = `[${annotations[0].text}](obsidian://zotero-reader?file=${encodeURIComponent(window.MD_SOURCE_PATH)}&navigation=${encodedData})`;
+							let link = `[${annotations[0].text}](obsidian://zotero-reader?file=${encodeURIComponent(ObsidianBridge.getMarkdownSourceFilePath())}&navigation=${encodedData})`;
 							navigator.clipboard.writeText(link);
 					}
 				},
@@ -265,7 +267,7 @@ export function createAnnotationContextMenu(reader, params) {
 					disabled: annotations.length !== 1,
 					onCommand: () => {
 							// Create the link with encoded annotation data
-							let link = `![[${window.MD_SOURCE_PATH}#^${annotations[0].id}]]`;
+							let link = `![[${ObsidianBridge.getMarkdownSourceFilePath()}#^${annotations[0].id}]]`;
 							navigator.clipboard.writeText(link);
 					}
 				},
