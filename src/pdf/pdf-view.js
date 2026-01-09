@@ -70,6 +70,7 @@ import {
 } from './lib/path';
 import { History } from '../common/lib/history';
 import { FindState, PDFFindController } from './pdf-find-controller';
+import { ObsidianBridge } from '../common/lib/obsidian-adapter';
 
 class PDFView {
 	constructor(options) {
@@ -156,7 +157,13 @@ class PDFView {
 
 		this._iframe = document.createElement('iframe');
 		this._iframe.addEventListener('load', () => this._iframe.classList.add('loaded'));
-		this._iframe.src = 'pdf/web/viewer.html';
+
+		if (!ObsidianBridge.isAndroidApp()) {
+			this._iframe.src = ObsidianBridge.getBlobUrlMap()['pdf/web/viewer.html'];
+		}
+		else {
+			this._iframe.srcdoc = ObsidianBridge.getBlobUrlMap()['pdf/web/viewer.html.srcdoc'];
+		}
 
 		this._iframeWindow = null;
 
@@ -183,6 +190,8 @@ class PDFView {
 			this._iframeWindow.PDFViewerApplicationOptions.set('disableHistory', true);
 			this._iframeWindow.PDFViewerApplicationOptions.set('enableXfa', false);
 			this._iframeWindow.PDFViewerApplicationOptions.set('annotationEditorMode', -1);
+			this._iframeWindow.PDFViewerApplicationOptions.set('workerSrc', ObsidianBridge.getBlobUrlMap()['pdf/build/pdf.worker.mjs']);
+
 		};
 
 		window.addEventListener('webviewerloaded', () => {
@@ -1003,7 +1012,7 @@ class PDFView {
 		// pick node corresponding to the range that actually contains the query
 		let node = endNode.textContent.includes(this._findState.query) ? endNode : startNode;
 		this._a11yVirtualCursorTarget = node.parentNode;
-	  }, A11Y_VIRT_CURSOR_DEBOUNCE_LENGTH);
+	}, A11Y_VIRT_CURSOR_DEBOUNCE_LENGTH);
 
 	// Record the current page that the virtual cursor enter when focus enters the content.
 	// Debounce to not run this on every view stats update.
@@ -1636,7 +1645,7 @@ class PDFView {
 	_getPageAnnotations(pageIndex) {
 		return this._annotations.filter(
 			x => x.position.pageIndex === pageIndex
-			|| x.position.nextPageRects && x.position.pageIndex + 1 === pageIndex
+				|| x.position.nextPageRects && x.position.pageIndex + 1 === pageIndex
 		);
 	}
 
@@ -1666,7 +1675,7 @@ class PDFView {
 
 		let selectedTextAnnotation = selectableAnnotations.find(
 			x => x.type === 'text'
-			&& x.id === this._selectedAnnotationIDs[0]
+				&& x.id === this._selectedAnnotationIDs[0]
 		);
 		if (selectedTextAnnotation) {
 			return [selectedTextAnnotation];
@@ -2596,8 +2605,8 @@ class PDFView {
 					}
 					else if (action.type === 'erase' && action.triggered) {
 						let annotations = [...action.annotations.values()];
-						let updated = annotations.filter( x => x.position.paths.length);
-						let deleted = annotations.filter( x => !x.position.paths.length);
+						let updated = annotations.filter(x => x.position.paths.length);
+						let deleted = annotations.filter(x => !x.position.paths.length);
 						if (updated.length) {
 							this._onUpdateAnnotations(updated);
 						}

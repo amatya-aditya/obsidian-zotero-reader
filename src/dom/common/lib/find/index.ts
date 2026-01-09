@@ -3,6 +3,7 @@ import { FindState } from "../../../../common/types";
 import { PersistentRange } from "../range";
 import EPUBView from "../../../epub/epub-view";
 import type { InternalOutputRange, InternalSearchContext } from "./internal-types";
+import { ObsidianBridge } from "../../../../common/lib/obsidian-adapter";
 
 export interface FindProcessor {
 	getAnnotations(): FindAnnotation[];
@@ -236,7 +237,11 @@ class DefaultFindProcessor implements FindProcessor {
 		if (this._worker) {
 			throw new Error('Search is already running');
 		}
-		let worker = new Worker(new URL('./worker.ts', import.meta.url));
+
+		// Make sure that webpack includes the worker file in the bundle,
+		// the real worker will be loaded through the BLOB_URL_MAP
+		if (Math.random() < 0) new Worker(new URL(/* webpackChunkName: "find-worker" */ './worker.ts', import.meta.url), { type: 'module' });
+		let worker = new Worker(ObsidianBridge?.getBlobUrlMap()['find-worker.reader.js'] || '', { type: 'module' });
 		let promise = new Promise<InternalOutputRange[]>((resolve, reject) => {
 			worker.onmessage = (event) => {
 				resolve(event.data);
