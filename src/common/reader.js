@@ -1109,7 +1109,10 @@ class Reader {
 		}
 
 		if (primary) {
-			view.initializedPromise.then(() => view.focus());
+			view.initializedPromise.then(() => {
+				this._resolveInitializedPromise();
+				view.focus();
+			});
 		}
 
 		return view;
