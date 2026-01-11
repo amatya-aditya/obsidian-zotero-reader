@@ -3,7 +3,7 @@ import {
 	initBridge,
 	ObsidianBridge,
 	registerChildAPI,
-} from "./common/lib/obsidian-adapter";
+} from "./obsidian-adapter.js";
 import { connect, WindowMessenger } from "penpal";
 
 /**
@@ -27,7 +27,6 @@ import { connect, WindowMessenger } from "penpal";
 		const readerAdapter = new ZoteroReaderAdapter();
 		const childAPI = {
 			async initReader(opts) {
-				console.log("CALLdED", opts)
 				readerAdapter.on((evt) => ObsidianBridge.handleEvent(evt));
 				// If the parent passed us an ArrayBuffer, we need to transfer the realm under us
 				if (opts.data.buf) {
@@ -47,6 +46,10 @@ import { connect, WindowMessenger } from "penpal";
 				readerAdapter.applyColorSchemeForAll(colorScheme);
 				return true;
 			},
+			async addAnnotation(annotation) {
+				readerAdapter.addAnnotation(annotation);
+				return true;
+			},
 			async refreshAnnotations(annotations) {
 				readerAdapter.refreshAnnotations(annotations);
 				return true;
@@ -54,7 +57,7 @@ import { connect, WindowMessenger } from "penpal";
 			async navigate(location) {
 				readerAdapter.navigate(location);
 				return true;
-			},
+			}
 		};
 
 		registerChildAPI(childAPI);

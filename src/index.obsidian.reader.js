@@ -26,7 +26,7 @@ export default class ZoteroReaderAdapter {
 			annotations: [],
 			primaryViewState: {},
 			sidebarWidth: 240,
-			sidebarOpen: true,
+			sidebarOpen: false,
 			toolbarPlaceholderWidth: 0,
 			showAnnotations: true,
 			onOpenContextMenu: (params) => {
@@ -145,6 +145,30 @@ export default class ZoteroReaderAdapter {
 				"Reader data is required (one of data.buf and data.url, and data.type must be provided in options)"
 			);
 		}
+
+		// Extract the existing annotation from pdf
+		if(config.type === "pdf") {
+			
+		}
+
+		// 		async import(buf, isPriority) {
+		//     return this._enqueue(async () => {
+		//         try {
+		//             var { imported } = await this._query('import', { buf, existingAnnotations: [] }, [buf]);
+		//         }
+		//         catch (e) {
+		//             let error = new Error(`Worker 'import' failed: ${JSON.stringify({ error: e.message })}`);
+		//             // ... 
+		//         }
+		//         let annotations = [];
+		//         for (let annotation of imported) {
+		//             annotation.id = Math.round(Math.random() * 4294967295).toString().slice(0, 8);
+		//             annotation.isExternal = true;
+		//             annotations.push(annotationItemFromJSON(annotation));
+		//         }
+		//         return annotations;
+		//     }, isPriority);
+		// }
 		
 		// Apply sidebar position
 		if (config.sidebarPosition === "end") {
@@ -331,6 +355,12 @@ export default class ZoteroReaderAdapter {
 			id: "obsidian",
 			label: "Obsidian",
 		};
+	}
+
+	addAnnotation(annotation) {
+		if (this.reader) {
+			this.reader._annotationManager.addAnnotation(annotation);
+		}
 	}
 
 	async refreshAnnotations(annotations) {

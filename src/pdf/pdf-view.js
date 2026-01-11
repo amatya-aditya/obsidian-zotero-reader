@@ -70,7 +70,7 @@ import {
 } from './lib/path';
 import { History } from '../common/lib/history';
 import { FindState, PDFFindController } from './pdf-find-controller';
-import { ObsidianBridge } from '../common/lib/obsidian-adapter';
+import { ObsidianBridge } from '../obsidian-adapter';
 
 class PDFView {
 	constructor(options) {

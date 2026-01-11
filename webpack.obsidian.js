@@ -6,6 +6,7 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const ZoteroLocalePlugin = require("./webpack.zotero-locale-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const InlineHtmlAssetsPlugin = require("./webpack.inline-html-assets-plugin");
+const PdfWorkerPlugin = require("./webpack.pdf-worker-plugin");
 
 module.exports = (_env, argv) => {
 	const mode = argv.mode || "development";
@@ -139,6 +140,9 @@ module.exports = (_env, argv) => {
 				leaveJSFile: false,
 				keepLinkTag: false,
 				keepScriptTag: false,
+			}),
+			new PdfWorkerPlugin({
+				commitHash: "fd642b38287f1e59aaf8e02c3132da6d3daa39c1",
 			}),
 		],
 	};

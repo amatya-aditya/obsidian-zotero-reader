@@ -3,7 +3,7 @@ import { FindState } from "../../../../common/types";
 import { PersistentRange } from "../range";
 import EPUBView from "../../../epub/epub-view";
 import type { InternalOutputRange, InternalSearchContext } from "./internal-types";
-import { ObsidianBridge } from "../../../../common/lib/obsidian-adapter";
+import { ObsidianBridge } from "../../../../obsidian-adapter";
 
 export interface FindProcessor {
 	getAnnotations(): FindAnnotation[];
