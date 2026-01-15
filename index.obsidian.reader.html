@@ -15,18 +15,20 @@
 	<script>
 		(() => {
 			// Set base URL
+			const parent = window.parent && window.parent.opener && !window.parent.opener.closed ? window.parent.opener : window.parent;
+
 			document
 				.querySelector("base")
-				.setAttribute("href", window.parent.location.origin + "/");
+				.setAttribute("href", parent.location.origin + "/");
 
 			// Set up MathJax
 			window.MathJax = {
 				chtml: {
 					adaptiveCSS: false,
-					fontURL: window.parent.MathJax.config.chtml.fontURL,
+					fontURL: parent.MathJax.config.chtml.fontURL,
 				},
 				loader: {
-					paths: window.parent.MathJax.config.loader.paths,
+					paths: parent.MathJax.config.loader.paths,
 				},
 				startup: {
 					typeset: true,
