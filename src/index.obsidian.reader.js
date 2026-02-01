@@ -1,4 +1,5 @@
 import Reader from "./common/reader";
+import { ObsidianBridge } from "./obsidian-adapter";
 
 /**
  * -----------------------------------------------------------
@@ -89,12 +90,7 @@ export default class ZoteroReaderAdapter {
 				annotations,
 				fromText
 			) => {
-				console.log({
-					type: "setDataTransferAnnotations",
-					dataTransfer,
-					annotations,
-					fromText,
-				});
+				ObsidianBridge.handleSetDataTransferAnnotations(dataTransfer, annotations, fromText);
 			},
 			onConfirm: (title, text, confirmationButtonTitle) => {
 				this.emit({
