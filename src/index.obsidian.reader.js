@@ -361,6 +361,10 @@ export default class ZoteroReaderAdapter {
 
 	async refreshAnnotations(annotations) {
 		if (this.reader) {
+			// Unset all annotations not in the new list, and set the new ones
+			const newIDs = new Set(annotations.map((a) => a.id));
+			const annotationsToRemove = this.reader._annotationManager._annotations.filter(x => !newIDs.has(x.id)).map(x => x.id);
+			this.reader._annotationManager.unsetAnnotations(annotationsToRemove);
 			this.reader.setAnnotations(annotations);
 		}
 	}
