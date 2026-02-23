@@ -216,11 +216,11 @@ export class KeyboardManager {
 			pageNumberInput.focus();
 			pageNumberInput.select();
 		}
-		else if (key === `${pm}-p`) {
-			event.preventDefault();
-			event.stopPropagation();
-			this._reader.print();
-		}
+		// else if (key === `${pm}-p`) {
+		// 	event.preventDefault();
+		// 	event.stopPropagation();
+		// 	this._reader.print();
+		// }
 		else if (key === `${pm}-=` || key === `${pm}-+` || code === `${pm}-NumpadAdd`) {
 			event.preventDefault();
 			event.stopPropagation();
