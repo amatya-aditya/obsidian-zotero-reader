@@ -28,6 +28,27 @@ export class KeyboardManager {
 		let shift = event.shiftKey;
 		this.shift = shift;
 		this.mod = mod;
+
+		// Bubble key-up events to the parent window (e.g. Obsidian hotkeys)
+		if (!event.defaultPrevented && !event.cancelBubble && window.parent !== window) {
+			try {
+				window.parent.dispatchEvent(new KeyboardEvent(event.type, {
+					key: event.key,
+					code: event.code,
+					keyCode: event.keyCode,
+					which: event.which,
+					ctrlKey: event.ctrlKey,
+					shiftKey: event.shiftKey,
+					altKey: event.altKey,
+					metaKey: event.metaKey,
+					repeat: event.repeat,
+					bubbles: true,
+					cancelable: true,
+				}));
+			} catch (_) {
+				// Cross-origin or sandbox restriction — ignore
+			}
+		}
 	}
 
 	_handleKeyDown(event, view) {
@@ -336,6 +357,27 @@ export class KeyboardManager {
 				if (ANNOTATION_COLORS[idx]) {
 					this._reader.setTool({ color: ANNOTATION_COLORS[idx][1] });
 				}
+			}
+		}
+
+		// Bubble unhandled key events to the parent window (e.g. Obsidian hotkeys)
+		if (!event.defaultPrevented && !event.cancelBubble && window.parent !== window) {
+			try {
+				window.findParentWindow().dispatchEvent(new KeyboardEvent(event.type, {
+					key: event.key,
+					code: event.code,
+					keyCode: event.keyCode,
+					which: event.which,
+					ctrlKey: event.ctrlKey,
+					shiftKey: event.shiftKey,
+					altKey: event.altKey,
+					metaKey: event.metaKey,
+					repeat: event.repeat,
+					bubbles: true,
+					cancelable: true,
+				}));
+			} catch (_) {
+				// Cross-origin or sandbox restriction — ignore
 			}
 		}
 	}

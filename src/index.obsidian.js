@@ -11,7 +11,7 @@ import { connect, WindowMessenger } from "penpal";
  * Bridge with the obsidian
  * -----------------------------------------------------------
  */
-const findParentWindow = () => {
+window.findParentWindow = () => {
     // Try to get opener (in Obsidian standalone window mode, opener is the BrowserWindow that hosts the View)
     try {
         if (window.parent && window.parent.opener && !window.parent.opener.closed) {
@@ -29,7 +29,7 @@ const findParentWindow = () => {
 
 (async () => {
 	const messenger = new WindowMessenger({
-		remoteWindow: findParentWindow(),
+		remoteWindow: window.findParentWindow(),
 		allowedOrigins: ["*"],
 	});
 
