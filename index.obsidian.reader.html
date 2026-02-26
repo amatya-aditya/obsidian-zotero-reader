@@ -13,9 +13,25 @@
 
 	<!-- Script to set up the environment from obsidian -->
 	<script>
+		window.findParentWindow = () => {
+			// Try to get opener (in Obsidian standalone window mode, opener is the BrowserWindow that hosts the View)
+			try {
+				if (window.parent && window.parent.opener && !window.parent.opener.closed) {
+					return window.parent.opener;
+				}
+			} catch (e) {
+				// Capture cross-origin security error
+				console.warn("Access to opener blocked:", e);
+			}
+
+			// If there is no opener (e.g., in the main interface sidebar, or the opener is closed),
+			// or access fails, then fallback to the standard parent
+			return window.parent;
+		};
+
 		(() => {
 			// Set base URL
-			const parent = window.parent && window.parent.opener && !window.parent.opener.closed ? window.parent.opener : window.parent;
+			const parent = window.findParentWindow();
 
 			document
 				.querySelector("base")
@@ -44,7 +60,7 @@
 	<script src="/enhance.js" type="text/javascript"></script>
 
 	<!-- Script to copy and scope Obsidian app.css styles -->
-	<!-- <script>
+	<script>
 			(() => {
 				const processRuleList = (ruleList, prefix) => {
 					let out = "";
@@ -198,7 +214,7 @@
 
 				const cssChunks = [];
 				const appSheets = Array.from(
-					window.parent?.document?.styleSheets || []
+					window.findParentWindow()?.document?.styleSheets || []
 				).filter(
 					(sheet) =>
 						sheet.href &&
@@ -225,16 +241,16 @@
 					constructed,
 				];
 			})();
-		</script> -->
+		</script>
 
 	<!-- Script to extract Obsidian theme variables and apply them to the document -->
-	<!-- <script>
+	<script>
 			(() => {
 				const extractObsidianStylesVars = () => {
 					const extractCSSVariables = (selector) => {
 						const variables = {};
 
-						Array.from(window.parent.document.styleSheets)
+						Array.from(window.findParentWindow()?.document?.styleSheets || [])
 							.filter(
 								(sheet) =>
 									sheet.href === null ||
@@ -277,12 +293,14 @@
 						return variables;
 					};
 					const bodyVariables = extractCSSVariables("body");
+					const rootVariables = extractCSSVariables(":root");
 					const themeLightVariables =
 						extractCSSVariables(".theme-light");
 					const themeDarkVariables =
 						extractCSSVariables(".theme-dark");
 
 					return {
+						":root": rootVariables,
 						":root, :root > .obsidian-app": bodyVariables,
 						"html.obsidian-theme-light, html.obsidian-theme-light .obsidian-app":
 							themeLightVariables,
@@ -312,7 +330,7 @@
 				];
 
 				const theme = getComputedStyle(
-					window.parent.document.body
+					window.findParentWindow()?.document.body
 				).colorScheme;
 
 				document.documentElement.classList.toggle(
@@ -324,7 +342,7 @@
 					theme === "light"
 				);
 			})();
-		</script> -->
+		</script>
 
 	<!-- Webpack will inject the reader.js here -->
 	<% for (const js of htmlWebpackPlugin.files.js) { %>

@@ -30,9 +30,9 @@ export class KeyboardManager {
 		this.mod = mod;
 
 		// Bubble key-up events to the parent window (e.g. Obsidian hotkeys)
-		if (!event.defaultPrevented && !event.cancelBubble && window.parent !== window) {
+		if (!event.defaultPrevented && !event.cancelBubble && window.findParentWindow() !== window) {
 			try {
-				window.parent.dispatchEvent(new KeyboardEvent(event.type, {
+				window.findParentWindow().dispatchEvent(new KeyboardEvent(event.type, {
 					key: event.key,
 					code: event.code,
 					keyCode: event.keyCode,
@@ -361,7 +361,7 @@ export class KeyboardManager {
 		}
 
 		// Bubble unhandled key events to the parent window (e.g. Obsidian hotkeys)
-		if (!event.defaultPrevented && !event.cancelBubble && window.parent !== window) {
+		if (!event.defaultPrevented && !event.cancelBubble && window.findParentWindow() !== window) {
 			try {
 				window.findParentWindow().dispatchEvent(new KeyboardEvent(event.type, {
 					key: event.key,

@@ -136,7 +136,8 @@ class PDFView {
 		let darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
 		// Initial check
-		this._preferedColorTheme = darkModeMediaQuery.matches ? 'dark' : 'light';
+		// Don't need to check system's preferred color scheme, it will be brought from obsidian
+		// this._preferedColorTheme = darkModeMediaQuery.matches ? 'dark' : 'light';
 
 		// Listen for changes
 		darkModeMediaQuery.addEventListener('change', event => {
