@@ -329,18 +329,6 @@
 					constructed,
 				];
 
-				const theme = getComputedStyle(
-					window.findParentWindow()?.document.body
-				).colorScheme;
-
-				document.documentElement.classList.toggle(
-					"obsidian-theme-dark",
-					theme === "dark"
-				);
-				document.documentElement.classList.toggle(
-					"obsidian-theme-light",
-					theme === "light"
-				);
 			})();
 		</script>
 
@@ -350,7 +338,7 @@
 		<% } %>
 
 			<!-- Styles for scrollbar -->
-			<!-- <style>
+			<style>
 				::-webkit-scrollbar {
 					background-color: var(--scrollbar-bg);
 					width: var(--scrollbar-width);
@@ -391,7 +379,7 @@
 						scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-bg);
 					}
 				}
-			</style> -->
+			</style>
 
 			<!-- Webpack will inject the reader.css here -->
 			<% for (const css of htmlWebpackPlugin.files.css) { %>
@@ -402,8 +390,16 @@
 <body class="sidebar-open">
 	<div id="reader-ui"></div>
 	<div id="split-view">
-		<div id="primary-view" class="primary-view"></div>
-		<div id="secondary-view" class="secondary-view"></div>
+		<div
+			id="primary-view"
+			class="primary-view"
+			style="opacity: 0"
+		></div>
+		<div
+			id="secondary-view"
+			class="secondary-view"
+			style="opacity: 0"
+		></div>
 	</div>
 	<div id="printContainer"></div>
 </body>

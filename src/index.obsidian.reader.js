@@ -83,6 +83,8 @@ export default class ZoteroReaderAdapter {
 			onToggleSidebar: (open) => {
 				this.emit({ type: "sidebarToggled", open });
 			},
+			onChangeSidebarView: (view) => {
+			},
 			onChangeSidebarWidth: (width) => {
 			},
 			onSetDataTransferAnnotations: (
@@ -139,30 +141,6 @@ export default class ZoteroReaderAdapter {
 				"Reader data is required (one of data.buf and data.url, and data.type must be provided in options)"
 			);
 		}
-
-		// Extract the existing annotation from pdf
-		if(config.type === "pdf") {
-			
-		}
-
-		// 		async import(buf, isPriority) {
-		//     return this._enqueue(async () => {
-		//         try {
-		//             var { imported } = await this._query('import', { buf, existingAnnotations: [] }, [buf]);
-		//         }
-		//         catch (e) {
-		//             let error = new Error(`Worker 'import' failed: ${JSON.stringify({ error: e.message })}`);
-		//             // ... 
-		//         }
-		//         let annotations = [];
-		//         for (let annotation of imported) {
-		//             annotation.id = Math.round(Math.random() * 4294967295).toString().slice(0, 8);
-		//             annotation.isExternal = true;
-		//             annotations.push(annotationItemFromJSON(annotation));
-		//         }
-		//         return annotations;
-		//     }, isPriority);
-		// }
 		
 		// Apply sidebar position
 		if (config.sidebarPosition === "end") {
@@ -252,6 +230,10 @@ export default class ZoteroReaderAdapter {
 			.map(
 				([sel, map]) =>
 					`${sel}{${Object.entries(map)
+						// Filter out variables that cause issues in the reader
+						.filter(([k, _]) => ![
+							"--page-border"
+						].includes(k))
 						.map(([k, v]) => `${k}:${v};`)
 						.join("")}}`
 			)
@@ -298,6 +280,14 @@ export default class ZoteroReaderAdapter {
 						scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-bg);
 					}
 				}`;
+
+		const toolbarColor = getComputedStyle(window.document.documentElement)
+			.getPropertyValue("--color-toolbar").trim();
+		if (toolbarColor) {
+			const pageBackgroundStyle = document.createElement("style");
+			pageBackgroundStyle.textContent = `:root { --pdf-page-background-color: ${toolbarColor}; }`;
+			document.head.prepend(pageBackgroundStyle);
+		}
 
 		document.head.prepend(scrollbarStyle);
 		document.head.prepend(varsStyle);

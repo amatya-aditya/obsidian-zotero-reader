@@ -35,7 +35,7 @@ body {
 
 :root {
 	color-scheme: light dark;
-	background-color: transparent;
+	background-color: var(--background-primary);
 	font-family: var(--font-family);
 	font-size: var(--font-size);
 	font-style: normal;

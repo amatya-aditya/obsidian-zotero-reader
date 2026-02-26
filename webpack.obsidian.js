@@ -67,7 +67,7 @@ module.exports = (_env, argv) => {
 						{
 							loader: "sass-loader",
 							options: {
-								additionalData: `$platform: 'obsidian';`,
+								additionalData: `$platform: 'web';`,
 							},
 						},
 					],
@@ -80,7 +80,7 @@ module.exports = (_env, argv) => {
 						{
 							loader: "sass-loader",
 							options: {
-								additionalData: `$platform: 'obsidian';`,
+								additionalData: `$platform: 'web';`,
 							},
 						},
 					],
