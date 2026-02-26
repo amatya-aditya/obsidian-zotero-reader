@@ -115,7 +115,7 @@ const ReaderUI = React.forwardRef((props, ref) => {
 	let showContextPaneToggle = state.showContextPaneToggle && (stackedView || !state.contextPaneOpen);
 
 	return (
-		<LocalizationProvider l10n={new ReactLocalization([bundle])}>
+		<LocalizationProvider l10n={new ReactLocalization([bundle])} reportError={()=>{}}>
 			<Fragment>
 				<div>
 					<Toolbar
