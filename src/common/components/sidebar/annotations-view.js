@@ -201,7 +201,7 @@ const AnnotationsView = memo(React.forwardRef((props, ref) => {
 			return;
 		}
 		let annotationNode = node.closest('.annotation');
-		if (!node.classList.contains('content')) {
+		if (!(node.classList.contains('content') || node.classList.contains('cm-content'))) {
 			if (pressedPreviousKey(event)) {
 				annotationNode.previousElementSibling?.focus();
 				event.preventDefault();

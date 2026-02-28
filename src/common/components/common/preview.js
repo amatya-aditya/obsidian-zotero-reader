@@ -17,6 +17,8 @@ import IconInk from '../../../../res/icons/16/annotate-ink.svg';
 import IconText from '../../../../res/icons/16/annotate-text.svg';
 import IconOptions from '../../../../res/icons/16/options.svg';
 import IconLock from '../../../../res/icons/16/lock.svg';
+import ObsidianEditor from './obsidian-editor';
+import ExpandableObsidianEditor from './expandable-obsidian-editor';
 
 // TODO: Don't allow to select UI text in popup header and footer
 // TODO: Rename to annotation-preview
@@ -101,7 +103,7 @@ export function PopupPreview(props) {
 
 			{!['ink', 'text'].includes(annotation.type) && (
 				<div className="comment">
-					<Editor
+					<ObsidianEditor
 						id={annotation.id}
 						text={annotation.comment}
 						ariaLabel={l10n.getString('reader-annotation-comment')}
@@ -261,7 +263,7 @@ export function SidebarPreview(props) {
 			draggable={state === 0 || props.readOnly}
 			onDragStart={handleDragStart}
 		>
-			<ExpandableEditor
+			<ExpandableObsidianEditor
 				id={annotation.id}
 				text={annotation.comment}
 				readOnly={props.readOnly || !(state === 1 || state === 2 || state === 3)}
