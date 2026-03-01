@@ -1,6 +1,7 @@
 import React, { useId, useEffect, useRef } from "react";
 import { ObsidianBridge } from "../../../obsidian-adapter";
 import cx from "classnames";
+import CommentDisplay from "./comment-display";
 
 function ObsidianEditor(props) {
 	let editorRef = useRef();
@@ -15,10 +16,14 @@ function ObsidianEditor(props) {
 	};
 
 	useEffect(() => {
-		setEditor(
-			ObsidianBridge.createAnnotationEditor(editorRef.current, options)
-		);
-	}, []);
+		if (props.readOnly) return;
+		const ed = ObsidianBridge.createAnnotationEditor(editorRef.current, options);
+		setEditor(ed);
+		return () => {
+			ed.onunload();
+			setEditor(null);
+		};
+	}, [props.readOnly]);
 
 	useEffect(() => {
 		if (editor) {
@@ -26,8 +31,12 @@ function ObsidianEditor(props) {
 		}
 	}, [props.text, editor]);
 
+	if (props.readOnly) {
+		return <CommentDisplay {...props} />;
+	}
+
 	return (
-		<div className={cx("editor", { "read-only": props.readOnly })} style={{ fontSize:"1em" }}>
+		<div className={cx("editor")} style={{ fontSize:"1em" }}>
 			<div id={editorId} style={{ fontSize: "1em" }} ref={editorRef} />
 		</div>
 	);
