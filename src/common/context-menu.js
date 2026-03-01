@@ -1,3 +1,4 @@
+import { ObsidianBridge } from '../obsidian-adapter';
 import {
 	ANNOTATION_COLORS,
 	DEFAULT_THEMES,
@@ -129,6 +130,53 @@ export function createViewContextMenu(reader, params) {
 					label: reader._getString('general-copy'),
 					disabled: !reader.canCopy,
 					onCommand: () => reader.copy()
+				},
+				// ZotFlow
+				{
+					label: "Copy Link to Selection",
+					disabled: !reader.canCopy,
+					onCommand: () => {
+						let currentView = reader._lastViewPrimary ? reader._primaryView : reader._secondaryView;
+						let navigationData = {};
+
+						let position = null;
+						let selectedText = "";
+						let pageLabel = null;
+
+						// Get current selection position based on view type
+						if (reader._type === 'pdf') {
+							// For PDF, get position from current selection ranges
+							if (currentView._selectionRanges && currentView._selectionRanges.length > 0) {
+								// Use the PDFPosition from selection ranges
+								position = currentView._selectionRanges[0].position;
+								selectedText = currentView._selectionRanges[0].text || "";
+								pageLabel = currentView._selectionRanges[0].position.pageIndex + 1
+
+							}
+						} else if (reader._type === 'epub' || reader._type === 'snapshot') {
+							// For EPUB/Snapshot, convert current selection to Selector
+							let selection = currentView._iframeWindow.getSelection();
+							if (selection && selection.rangeCount > 0) {
+								let range = selection.getRangeAt(0);
+								let selector = currentView.toSelector(range);
+								if (selector) {
+									// Position is the Selector itself for non-PDF views
+									position = selector;
+									selectedText = selection.toString();
+								}
+							}
+						}
+
+						// Add position to link data if we found one
+						if (position) {
+							navigationData.position = position;
+							navigationData.selectedText = selectedText;
+							navigationData.pageLabel = pageLabel;
+						}
+
+						const content = ObsidianBridge.getLinkToSelection( selectedText, navigationData);
+						navigator.clipboard.writeText(content);
+					}
 				}
 			],
 			[
@@ -231,6 +279,24 @@ export function createAnnotationContextMenu(reader, params) {
 					disabled: !reader._state.enableAddToNote,
 					persistent: true,
 					onCommand: () => reader._onAddToNote(annotations)
+				}
+			],
+			// ZotFlow
+			[
+				{
+					label: "Copy Annotation",
+					disabled: annotations.length === 0,
+					onCommand: () => reader.copy()
+				},
+				{
+					label: "Copy Annotated Text",
+					disabled: annotations.length === 0,
+					onCommand: () => {
+						const content = annotations.reduce((content, anno) => {
+							return content + (anno.text ? `${anno.text}\n\n` : "");
+						}, "");
+						navigator.clipboard.writeText(content);
+					}
 				}
 			],
 			colors.map(([label, color]) => ({
