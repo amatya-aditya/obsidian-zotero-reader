@@ -84,7 +84,7 @@ class PDFView {
 		this._outline = options.outline;
 		this._lightTheme = options.lightTheme;
 		this._darkTheme = options.darkTheme;
-		this._preferedColorTheme = options.colorScheme;
+		this._forcedColorScheme = options.colorScheme || null;
 		this._onRequestPassword = options.onRequestPassword;
 		this._onSetThumbnails = options.onSetThumbnails;
 		this._onSetOutline = options.onSetOutline;

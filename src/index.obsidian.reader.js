@@ -123,13 +123,32 @@ export default class ZoteroReaderAdapter {
 			onSetDarkTheme: (theme) => {
 				this.reader.setDarkTheme(theme);
 				this.emit({ type: "setDarkTheme", theme });
+			},
+			onForwardHotkey: (event) => {
+				this.emit({
+					type: "forwardHotkey",
+					key: event.key,
+					code: event.code,
+					ctrlKey: event.ctrlKey,
+					metaKey: event.metaKey,
+					shiftKey: event.shiftKey,
+					altKey: event.altKey,
+				});
 			}
 		};
 
 		const config = { ...defaults, ...opts };
+
+		// Inject Obsidian CSS variables into the main reader document FIRST
+		// so generateObsidianTheme() can read them
+		this.adoptObsidianStyles(window.OBSIDIAN_THEME_VARIABLES, document);
+
 		config.customThemes = [this.generateObsidianTheme(), ...(opts.customThemes || [])];
 		config.lightTheme = opts.lightTheme || "original_fallback";
 		config.darkTheme = opts.darkTheme || "original_fallback";
+
+		// The "obsidian" custom theme is always available via customThemes.
+		// The user chooses which theme to use via the light/dark theme settings.
 
 		// Build data argument from Source
 		if (
@@ -144,28 +163,9 @@ export default class ZoteroReaderAdapter {
 
 		// Extract the existing annotation from pdf
 		if(config.type === "pdf") {
-			
+
 		}
 
-		// 		async import(buf, isPriority) {
-		//     return this._enqueue(async () => {
-		//         try {
-		//             var { imported } = await this._query('import', { buf, existingAnnotations: [] }, [buf]);
-		//         }
-		//         catch (e) {
-		//             let error = new Error(`Worker 'import' failed: ${JSON.stringify({ error: e.message })}`);
-		//             // ... 
-		//         }
-		//         let annotations = [];
-		//         for (let annotation of imported) {
-		//             annotation.id = Math.round(Math.random() * 4294967295).toString().slice(0, 8);
-		//             annotation.isExternal = true;
-		//             annotations.push(annotationItemFromJSON(annotation));
-		//         }
-		//         return annotations;
-		//     }, isPriority);
-		// }
-		
 		// Apply sidebar position
 		if (config.sidebarPosition === "end") {
 			document.body.classList.toggle("sidebar-position-end", true);
@@ -176,7 +176,7 @@ export default class ZoteroReaderAdapter {
 		await this.reader.initializedPromise;
 		window._reader = this.reader;
 
-		// adopt obsidian styles
+		// adopt obsidian styles into view iframes
 		this.adoptObsidianStyles(
 			window.OBSIDIAN_THEME_VARIABLES,
 			this.reader._primaryView._iframeWindow.document
@@ -187,6 +187,7 @@ export default class ZoteroReaderAdapter {
 			this.reader._primaryView._iframeWindow.document
 		);
 
+		// Regenerate obsidian theme now that CSS variables are available
 		const newCustomThemes = this.reader._state.customThemes?.map(
 			(theme) => {
 				if (theme.id === "obsidian") {
@@ -216,10 +217,15 @@ export default class ZoteroReaderAdapter {
 		this.emit({ type: "ready" });
 	}
 
-	applyColorSchemeForAll(colorScheme) {
+	applyColorSchemeForAll(colorScheme, obsidianThemeMode) {
+		// Re-inject obsidian CSS variables into all documents
+		this.adoptObsidianStyles(window.OBSIDIAN_THEME_VARIABLES, document);
+		this.adoptObsidianStyles(window.OBSIDIAN_THEME_VARIABLES, this.reader?._primaryView?._iframeWindow?.document);
+		this.adoptObsidianStyles(window.OBSIDIAN_THEME_VARIABLES, this.reader?._secondaryView?._iframeWindow?.document);
+
 		this.applyColorScheme(colorScheme, document);
-		this.applyColorScheme(colorScheme, this.reader?._primaryView?._iframeWindow.document);
-		this.applyColorScheme(colorScheme, this.reader?._secondaryView?._iframeWindow.document);
+		this.applyColorScheme(colorScheme, this.reader?._primaryView?._iframeWindow?.document);
+		this.applyColorScheme(colorScheme, this.reader?._secondaryView?._iframeWindow?.document);
 
 		const newCustomThemes = this.reader._state.customThemes?.map(
 			(theme) => {
@@ -230,8 +236,11 @@ export default class ZoteroReaderAdapter {
 			}
 		);
 
-		this.reader.setColorScheme(colorScheme)
+		this.reader.setColorScheme(colorScheme);
 		this.reader.setCustomThemes(newCustomThemes);
+
+		// Theme selection is driven by the user's settings;
+		// no forced override here.
 	}
 
 	applyColorScheme(colorScheme, document) {
@@ -249,7 +258,12 @@ export default class ZoteroReaderAdapter {
 
 	adoptObsidianStyles(obsidianThemeVariables, document) {
 		if (!obsidianThemeVariables || !document) return;
+
+		// Remove previously injected obsidian styles to avoid stacking
+		document.querySelectorAll("[data-obsidian-injected]").forEach(el => el.remove());
+
 		const varsStyle = document.createElement("style");
+		varsStyle.setAttribute("data-obsidian-injected", "vars");
 		varsStyle.textContent = Object.entries(obsidianThemeVariables)
 			.map(
 				([sel, map]) =>
@@ -259,7 +273,46 @@ export default class ZoteroReaderAdapter {
 			)
 			.join("");
 
+		// Override reader UI CSS variables with Obsidian theme colors
+		const overrideStyle = document.createElement("style");
+		overrideStyle.setAttribute("data-obsidian-injected", "overrides");
+		overrideStyle.textContent = `
+			:root.obsidian-theme-dark[data-color-scheme=dark],
+			:root.obsidian-theme-light:not([data-color-scheme=dark]) {
+				--color-background: var(--background-primary) !important;
+				--color-background50: var(--background-primary) !important;
+				--color-background70: var(--background-primary) !important;
+				--color-toolbar: var(--background-secondary) !important;
+				--color-sidepane: var(--background-secondary-alt, var(--background-secondary)) !important;
+				--color-tabbar: var(--background-primary) !important;
+				--color-menu: var(--background-secondary) !important;
+				--color-panedivider: var(--background-modifier-border) !important;
+				--color-border: var(--background-modifier-border) !important;
+				--color-border50: var(--background-modifier-border) !important;
+				--color-button: var(--interactive-normal) !important;
+				--color-control: var(--text-muted) !important;
+				--fill-primary: var(--text-normal) !important;
+				--fill-secondary: var(--text-muted) !important;
+				--fill-tertiary: var(--text-faint) !important;
+				--material-background: var(--background-primary) !important;
+				--material-toolbar: var(--background-secondary) !important;
+				--material-sidepane: var(--background-secondary-alt, var(--background-secondary)) !important;
+				--material-tabbar: var(--background-primary) !important;
+				--material-menu: var(--background-secondary) !important;
+				--material-button: var(--interactive-normal) !important;
+			}
+
+			:root.obsidian-theme-dark[data-color-scheme=dark] body,
+			:root.obsidian-theme-dark[data-color-scheme=dark] body #viewerContainer,
+			:root.obsidian-theme-light:not([data-color-scheme=dark]) body,
+			:root.obsidian-theme-light:not([data-color-scheme=dark]) body #viewerContainer {
+				background-color: var(--background-primary) !important;
+				color: var(--text-normal) !important;
+			}
+		`;
+
 		const scrollbarStyle = document.createElement("style");
+		scrollbarStyle.setAttribute("data-obsidian-injected", "scrollbar");
 		scrollbarStyle.textContent = `
 				::-webkit-scrollbar {
 					background-color: var(--scrollbar-bg);
@@ -301,8 +354,9 @@ export default class ZoteroReaderAdapter {
 					}
 				}`;
 
-		document.head.prepend(scrollbarStyle);
-		document.head.prepend(varsStyle);
+		document.head.appendChild(varsStyle);
+		document.head.appendChild(overrideStyle);
+		document.head.appendChild(scrollbarStyle);
 	}
 
 	generateObsidianTheme() {

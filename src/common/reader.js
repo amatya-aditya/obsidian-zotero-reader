@@ -73,6 +73,7 @@ class Reader {
 		// Only used on Zotero client, sets text/plain and text/html values from Note Markdown and Note HTML translators
 		this._onSetDataTransferAnnotations = options.onSetDataTransferAnnotations;
 		this._onSetZoom = options.onSetZoom;
+		this._onForwardHotkey = options.onForwardHotkey;
 
 		if (Array.isArray(options.ftl)) {
 			for (let ftl of options.ftl) {

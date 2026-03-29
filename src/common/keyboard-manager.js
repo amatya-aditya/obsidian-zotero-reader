@@ -219,7 +219,10 @@ export class KeyboardManager {
 		else if (key === `${pm}-p`) {
 			event.preventDefault();
 			event.stopPropagation();
-			this._reader.print();
+			// Forward to Obsidian instead of printing
+			if (typeof this._reader._onForwardHotkey === 'function') {
+				this._reader._onForwardHotkey(event);
+			}
 		}
 		else if (key === `${pm}-=` || key === `${pm}-+` || code === `${pm}-NumpadAdd`) {
 			event.preventDefault();

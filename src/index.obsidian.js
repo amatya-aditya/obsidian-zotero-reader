@@ -40,10 +40,21 @@ const findParentWindow = () => {
 	parent.shakehand().then(() => {
 		initBridge();
 
+		// Populate OBSIDIAN_THEME_VARIABLES from parent so adoptObsidianStyles() works
+		if (typeof ObsidianBridge.getObsidianThemeVariables === "function") {
+			window.OBSIDIAN_THEME_VARIABLES = ObsidianBridge.getObsidianThemeVariables();
+		}
+
 		const readerAdapter = new ZoteroReaderAdapter();
 		const childAPI = {
 			async initReader(opts) {
 				readerAdapter.on((evt) => ObsidianBridge.handleEvent(evt));
+
+				// Refresh theme variables before each reader init (theme may have changed)
+				if (typeof ObsidianBridge.getObsidianThemeVariables === "function") {
+					window.OBSIDIAN_THEME_VARIABLES = ObsidianBridge.getObsidianThemeVariables();
+				}
+
 				// If the parent passed us an ArrayBuffer, we need to transfer the realm under us
 				if (opts.data.buf) {
 					const childCopy = new Uint8Array(opts.data.buf.length);
@@ -58,8 +69,12 @@ const findParentWindow = () => {
 				}
 				return true;
 			},
-			async setColorScheme(colorScheme) {
-				readerAdapter.applyColorSchemeForAll(colorScheme);
+			async setColorScheme(colorScheme, obsidianThemeMode) {
+				// Refresh theme variables when color scheme changes
+				if (typeof ObsidianBridge.getObsidianThemeVariables === "function") {
+					window.OBSIDIAN_THEME_VARIABLES = ObsidianBridge.getObsidianThemeVariables();
+				}
+				readerAdapter.applyColorSchemeForAll(colorScheme, obsidianThemeMode);
 				return true;
 			},
 			async addAnnotation(annotation) {
