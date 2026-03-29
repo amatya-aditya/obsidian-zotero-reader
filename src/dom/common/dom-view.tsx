@@ -1478,7 +1478,7 @@ abstract class DOMView<State extends DOMViewState, Data> {
 			}
 			// ZotFlow: Copy annotation as citation via main thread (async)
 			event.preventDefault();
-			ObsidianBridge?.copyAnnotationCitation(annotations as any, 'default');
+			ObsidianBridge?.copyAnnotationCitation(annotations as any, ObsidianBridge?.isLocalReader() ? 'embed' : 'default');
 			return;
 		}
 		else {

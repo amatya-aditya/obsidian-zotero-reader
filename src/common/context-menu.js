@@ -283,18 +283,18 @@ export function createAnnotationContextMenu(reader, params) {
 			],
 			// ZotFlow: Citation copy options
 			[
-				// {
-				// 	label: "Copy Embed",
-				// 	disabled: annotations.length === 0,
-				// 	onCommand: () => ObsidianBridge?.copyAnnotationCitation(annotations, 'embed')
-				// },
+				{
+					label: "Copy Embed",
+					disabled: annotations.length === 0,
+					onCommand: () => ObsidianBridge?.copyAnnotationCitation(annotations, 'embed')
+				},
 				{
 					label: "Copy Annotation Text",
 					disabled: annotations.length === 0,
 					onCommand: () => ObsidianBridge?.copyAnnotationCitation(annotations, 'text')
 				}
 			],
-			[
+			!ObsidianBridge?.isLocalReader() ? [
 				{
 					label: "Copy Default Citation",
 					disabled: annotations.length === 0,
@@ -315,7 +315,7 @@ export function createAnnotationContextMenu(reader, params) {
 					disabled: annotations.length === 0,
 					onCommand: () => ObsidianBridge?.copyAnnotationCitation(annotations, 'wikilink')
 				},
-			],
+			] : [],
 			colors.map(([label, color]) => ({
 				label: reader._getString(label),
 				disabled: readOnly,

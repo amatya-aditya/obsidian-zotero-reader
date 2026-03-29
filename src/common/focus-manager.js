@@ -330,7 +330,7 @@ export class FocusManager {
 				)) {
 				event.preventDefault();
 				// ZotFlow: Copy annotation as citation via main thread (async)
-				ObsidianBridge?.copyAnnotationCitation(annotations, 'default');
+				ObsidianBridge?.copyAnnotationCitation(annotations, ObsidianBridge?.isLocalReader() ? 'embed' : 'default');
 			}
 		}
 	}
