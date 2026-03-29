@@ -66,6 +66,7 @@ import {
 import { History } from "../../common/lib/history";
 import { closestMathTeX } from "./lib/math";
 import { DEFAULT_REFLOWABLE_APPEARANCE } from "./defines";
+import { ObsidianBridge } from "../../obsidian-adapter";
 
 abstract class DOMView<State extends DOMViewState, Data> {
 	readonly MIN_SCALE = 0.6;
@@ -1203,6 +1204,17 @@ abstract class DOMView<State extends DOMViewState, Data> {
 			return;
 		}
 
+		// ZotFlow: Ctrl+Shift+C → copy annotation text
+		if ((key === 'Ctrl-Shift-C' || key === 'Cmd-Shift-C')
+				&& this._selectedAnnotationIDs.length) {
+			let annotations = this._selectedAnnotationIDs.map(id => this._annotationsByID.get(id)).filter(Boolean);
+			if (annotations.length) {
+				event.preventDefault();
+				ObsidianBridge?.copyAnnotationCitation(annotations as any, 'text');
+				return;
+			}
+		}
+
 		// Pass keydown even to the main window where common keyboard
 		// shortcuts are handled i.e. Delete, Cmd-Minus, Cmd-f, etc.
 		this._options.onKeyDown(event);
@@ -1460,14 +1472,14 @@ abstract class DOMView<State extends DOMViewState, Data> {
 			return;
 		}
 		if (this._selectedAnnotationIDs.length) {
-			// It's enough to provide only one of selected annotations,
-			// others will be included automatically by _onSetDataTransferAnnotations
-			let annotation = this._annotationsByID.get(this._selectedAnnotationIDs[0]);
-			if (!annotation) {
+			let annotations = this._selectedAnnotationIDs.map(id => this._annotationsByID.get(id)).filter(Boolean);
+			if (!annotations.length) {
 				return;
 			}
-			console.log('Copying annotation', annotation);
-			this._options.onSetDataTransferAnnotations(event.clipboardData, annotation);
+			// ZotFlow: Copy annotation as citation via main thread (async)
+			event.preventDefault();
+			ObsidianBridge?.copyAnnotationCitation(annotations as any, 'default');
+			return;
 		}
 		else {
 			let annotation = this._getAnnotationFromTextSelection('highlight');

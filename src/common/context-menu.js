@@ -281,23 +281,40 @@ export function createAnnotationContextMenu(reader, params) {
 					onCommand: () => reader._onAddToNote(annotations)
 				}
 			],
-			// ZotFlow
+			// ZotFlow: Citation copy options
+			[
+				// {
+				// 	label: "Copy Embed",
+				// 	disabled: annotations.length === 0,
+				// 	onCommand: () => ObsidianBridge?.copyAnnotationCitation(annotations, 'embed')
+				// },
+				{
+					label: "Copy Annotation Text",
+					disabled: annotations.length === 0,
+					onCommand: () => ObsidianBridge?.copyAnnotationCitation(annotations, 'text')
+				}
+			],
 			[
 				{
-					label: "Copy Annotation",
+					label: "Copy Default Citation",
 					disabled: annotations.length === 0,
-					onCommand: () => reader.copy()
+					onCommand: () => ObsidianBridge?.copyAnnotationCitation(annotations, 'default')
 				},
 				{
-					label: "Copy Annotated Text",
+					label: "Copy Pandoc Citation",
 					disabled: annotations.length === 0,
-					onCommand: () => {
-						const content = annotations.reduce((content, anno) => {
-							return content + (anno.text ? `${anno.text}\n\n` : "");
-						}, "");
-						navigator.clipboard.writeText(content);
-					}
-				}
+					onCommand: () => ObsidianBridge?.copyAnnotationCitation(annotations, 'pandoc')
+				},
+				{
+					label: "Copy Footnote Citation",
+					disabled: annotations.length === 0,
+					onCommand: () => ObsidianBridge?.copyAnnotationCitation(annotations, 'footnote')
+				},
+				{
+					label: "Copy Wikilink Citation",
+					disabled: annotations.length === 0,
+					onCommand: () => ObsidianBridge?.copyAnnotationCitation(annotations, 'wikilink')
+				},
 			],
 			colors.map(([label, color]) => ({
 				label: reader._getString(label),

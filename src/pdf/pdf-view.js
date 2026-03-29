@@ -3438,6 +3438,17 @@ class PDFView {
 			this._a11yShouldFocusVirtualCursorTarget = true;
 		}
 
+		// ZotFlow: Ctrl+Shift+C → copy annotation text
+		if ((key === 'Ctrl-Shift-C' || key === 'Cmd-Shift-C')
+				&& this._selectedAnnotationIDs.length) {
+			let annotations = this._selectedAnnotationIDs.map(id => this._annotations.find(x => x.id === id)).filter(Boolean);
+			if (annotations.length) {
+				event.preventDefault();
+				ObsidianBridge?.copyAnnotationCitation(annotations, 'text');
+				return;
+			}
+		}
+
 		this._onKeyDown(event);
 	}
 
@@ -3523,11 +3534,12 @@ class PDFView {
 		}
 		// Copying annotation
 		if (this._selectedAnnotationIDs.length) {
-			let annotation = this._annotations.find(x => x.id === this._selectedAnnotationIDs[0]);
-			if (!annotation) {
+			let annotations = this._selectedAnnotationIDs.map(id => this._annotations.find(x => x.id === id)).filter(Boolean);
+			if (!annotations.length) {
 				return;
 			}
-			this._onSetDataTransferAnnotations(event.clipboardData, annotation);
+			// ZotFlow: Copy annotation as citation via main thread (async)
+			ObsidianBridge?.copyAnnotationCitation(annotations, 'default');
 		}
 		// Copying text
 		else {
