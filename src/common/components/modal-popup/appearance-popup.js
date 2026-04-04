@@ -192,7 +192,8 @@ function Theme({ theme, active, onSet, onOpenContextMenu }) {
 	const titleId = `reader-theme-${theme.id}`;
 	let name;
 	try {
-		name = l10n.getString(titleId);
+		// name = l10n.getString(titleId);
+		name = titleId;
 		// Some implementations return the ID itself when missing
 		if (name === titleId) {
 			name = theme.label;

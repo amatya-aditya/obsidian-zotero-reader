@@ -65,6 +65,9 @@ export default class ZoteroReaderAdapter {
 						opts.colorScheme,
 						this.reader._secondaryView?._iframeWindow.document
 					);
+					this.applyPageBackgroundColor(
+						this.reader._secondaryView?._iframeWindow.document
+					);
 					this.reader._secondaryViewContainer.style.opacity = "1";
 					this.secondaryViewInitialized = true;
 				}
@@ -82,6 +85,8 @@ export default class ZoteroReaderAdapter {
 			},
 			onToggleSidebar: (open) => {
 				this.emit({ type: "sidebarToggled", open });
+			},
+			onChangeSidebarView: (view) => {
 			},
 			onChangeSidebarWidth: (width) => {
 			},
@@ -142,8 +147,9 @@ export default class ZoteroReaderAdapter {
 		// Inject Obsidian CSS variables into the main reader document FIRST
 		// so generateObsidianTheme() can read them
 		this.adoptObsidianStyles(window.OBSIDIAN_THEME_VARIABLES, document);
+		this.applyColorScheme(opts.colorScheme, document);
 
-		config.customThemes = [this.generateObsidianTheme(), ...(opts.customThemes || [])];
+		config.customThemes = this.getCustomThemes(config.customThemes || []);
 		config.lightTheme = opts.lightTheme || "original_fallback";
 		config.darkTheme = opts.darkTheme || "original_fallback";
 
@@ -181,23 +187,18 @@ export default class ZoteroReaderAdapter {
 			window.OBSIDIAN_THEME_VARIABLES,
 			this.reader._primaryView._iframeWindow.document
 		);
-		this.applyColorScheme(opts.colorScheme, document);
 		this.applyColorScheme(
 			opts.colorScheme,
 			this.reader._primaryView._iframeWindow.document
 		);
-
-		// Regenerate obsidian theme now that CSS variables are available
-		const newCustomThemes = this.reader._state.customThemes?.map(
-			(theme) => {
-				if (theme.id === "obsidian") {
-					return this.generateObsidianTheme();
-				}
-				return theme;
-			}
+		this.applyPageBackgroundColor(
+			this.reader._primaryView._iframeWindow.document
 		);
 
-		this.reader.setCustomThemes(newCustomThemes);
+		// Regenerate the synthetic Obsidian theme once the iframe styles exist.
+		this.reader.setCustomThemes(
+			this.getCustomThemes(this.reader._state.customThemes || [])
+		);
 
 		this.reader._primaryViewContainer.style.opacity = "1";
 
@@ -210,11 +211,32 @@ export default class ZoteroReaderAdapter {
 				opts.colorScheme,
 				this.reader._secondaryView?._iframeWindow.document
 			);
+			this.applyPageBackgroundColor(
+				this.reader._secondaryView?._iframeWindow.document
+			);
 			this.reader._secondaryViewContainer.style.opacity = "1";
 			this.secondaryViewInitialized = true;
 		}
 
 		this.emit({ type: "ready" });
+	}
+
+	getCustomThemes(customThemes = []) {
+		const obsidianTheme = this.generateObsidianTheme();
+		const hasObsidianTheme = customThemes.some(
+			(theme) => theme.id === "obsidian"
+		);
+
+		if (hasObsidianTheme) {
+			return customThemes.map((theme) => {
+				if (theme.id === "obsidian") {
+					return obsidianTheme;
+				}
+				return theme;
+			});
+		}
+
+		return [obsidianTheme, ...customThemes];
 	}
 
 	applyColorSchemeForAll(colorScheme, obsidianThemeMode) {
@@ -227,17 +249,14 @@ export default class ZoteroReaderAdapter {
 		this.applyColorScheme(colorScheme, this.reader?._primaryView?._iframeWindow?.document);
 		this.applyColorScheme(colorScheme, this.reader?._secondaryView?._iframeWindow?.document);
 
-		const newCustomThemes = this.reader._state.customThemes?.map(
-			(theme) => {
-				if (theme.id === "obsidian") {
-					return this.generateObsidianTheme();
-				}
-				return theme;
-			}
-		);
-
-		this.reader.setColorScheme(colorScheme);
-		this.reader.setCustomThemes(newCustomThemes);
+		this.reader?.setColorScheme(colorScheme);
+		if (this.reader?._state?.customThemes) {
+			this.reader.setCustomThemes(
+				this.getCustomThemes(this.reader._state.customThemes)
+			);
+		}
+		this.applyPageBackgroundColor(this.reader?._primaryView?._iframeWindow?.document);
+		this.applyPageBackgroundColor(this.reader?._secondaryView?._iframeWindow?.document);
 
 		// Theme selection is driven by the user's settings;
 		// no forced override here.
@@ -268,6 +287,7 @@ export default class ZoteroReaderAdapter {
 			.map(
 				([sel, map]) =>
 					`${sel}{${Object.entries(map)
+						.filter(([k]) => !["--page-border"].includes(k))
 						.map(([k, v]) => `${k}:${v};`)
 						.join("")}}`
 			)
@@ -359,6 +379,23 @@ export default class ZoteroReaderAdapter {
 		document.head.appendChild(scrollbarStyle);
 	}
 
+	applyPageBackgroundColor(document) {
+		if (!document) return;
+
+		const computedStyle = getComputedStyle(document.documentElement);
+		const pageBackground =
+			computedStyle.getPropertyValue("--color-toolbar").trim() ||
+			computedStyle.getPropertyValue("--background-secondary").trim() ||
+			computedStyle.getPropertyValue("--background-primary").trim();
+
+		if (pageBackground) {
+			document.documentElement.style.setProperty(
+				"--pdf-page-background-color",
+				pageBackground
+			);
+		}
+	}
+
 	generateObsidianTheme() {
 		const expandShortHex = (hex) => {
 			// Convert #abc to #aabbcc
@@ -394,14 +431,44 @@ export default class ZoteroReaderAdapter {
 		};
 
 		const computedStyle = getComputedStyle(document.documentElement);
-		const background = computedStyle.getPropertyValue(
-			"--background-primary"
-		);
-		const foreground = computedStyle.getPropertyValue("--text-normal");
+		const getVariableFallback = (name) => {
+			if (typeof window.findParentWindow !== "function") {
+				return "";
+			}
+
+			const parent = window.findParentWindow();
+			if (!parent || parent === window) {
+				return "";
+			}
+
+			return parent.getComputedStyle(parent.document.body).getPropertyValue(name)?.trim() || "";
+		};
+
+		let background = computedStyle
+			.getPropertyValue("--background-primary")
+			.trim();
+		let foreground = computedStyle.getPropertyValue("--text-normal").trim();
+
+		if (!background) {
+			background = getVariableFallback("--background-primary");
+		}
+		if (!foreground) {
+			foreground = getVariableFallback("--text-normal");
+		}
 
 		return {
-			background: convertAnyColorToHex(background),
-			foreground: convertAnyColorToHex(foreground),
+			background: convertAnyColorToHex(
+				background ||
+				(document.documentElement.classList.contains("obsidian-theme-dark")
+					? "#000000"
+					: "#FFFFFF")
+			),
+			foreground: convertAnyColorToHex(
+				foreground ||
+				(document.documentElement.classList.contains("obsidian-theme-dark")
+					? "#FFFFFF"
+					: "#000000")
+			),
 			id: "obsidian",
 			label: "Obsidian",
 		};

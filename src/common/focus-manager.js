@@ -1,4 +1,5 @@
-import { isFirefox, pressedNextKey, pressedPreviousKey } from './lib/utilities';
+import { getKeyCombination, isFirefox, pressedNextKey, pressedPreviousKey } from './lib/utilities';
+import { ObsidianBridge } from '../obsidian-adapter';
 
 export class FocusManager {
 	constructor(options) {
@@ -122,10 +123,15 @@ export class FocusManager {
 		}
 
 		if (e.shiftKey && e.key === 'Tab') {
-			this.tabToGroup(true);
+			// If inside CodeMirror, ignore focus management
+			// ZotFlow
+			if (e.target.closest('.cm-content')) return;
 			e.preventDefault();
 		}
 		else if (e.key === 'Tab') {
+			// If inside CodeMirror, ignore focus management
+			// ZotFlow
+			if (e.target.closest('.cm-content')) return;
 			this.tabToGroup();
 			e.preventDefault();
 		}
@@ -142,6 +148,19 @@ export class FocusManager {
 			e.preventDefault();
 			this.tabToItem(true);
 		}
+		// ZotFlow: Ctrl+Shift+C → copy annotation text
+		{
+			let key = getKeyCombination(e);
+			if ((key === 'Ctrl-Shift-C' || key === 'Cmd-Shift-C') && ids.length) {
+				let annotations = this._reader._state.annotations.filter(x => ids.includes(x.id));
+				if (annotations.length) {
+					e.preventDefault();
+					ObsidianBridge?.copyAnnotationCitation(annotations, 'text');
+					return;
+				}
+			}
+		}
+
 		// If context menu is opened and a character is typed, forward the event to context menu
 		// so it can select a menuitem, similar to how native menus do it.
 		let contextMenu = document.querySelector('.context-menu');
@@ -301,15 +320,17 @@ export class FocusManager {
 		}
 		let ids = this._reader._state.selectedAnnotationIDs;
 		if (ids.length > 0) {
-			let annotation = this._reader._state.annotations.find(x => x.id === ids[0]);
+			let annotations = this._reader._state.annotations.filter(x => ids.includes(x.id));
+			let firstAnnotation = annotations[0];
 			if (!document.activeElement?.closest('.text, .comment')
 				|| (
 					document.activeElement?.closest('.comment')
-					&& !annotation.comment
+					&& !firstAnnotation?.comment
 					&& this._reader._annotationSelectionTriggeredFromView
 				)) {
-				this._reader._handleSetDataTransferAnnotations(event.clipboardData, annotation);
 				event.preventDefault();
+				// ZotFlow: Copy annotation as citation via main thread (async)
+				ObsidianBridge?.copyAnnotationCitation(annotations, ObsidianBridge?.isLocalReader() ? 'embed' : 'default');
 			}
 		}
 	}

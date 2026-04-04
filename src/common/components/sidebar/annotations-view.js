@@ -161,7 +161,13 @@ const AnnotationsView = memo(React.forwardRef((props, ref) => {
 		};
 	});
 
-	useEffect(() => {
+	// Zotflow: Synchronously reset expansion state when selectedIDs changes.
+	// Using setState-during-render pattern instead of useEffect to avoid
+	// an intermediate render where stale expansionState leaks to children
+	// (which would cause unnecessary editor creation/destruction).
+	const [prevSelectedIDs, setPrevSelectedIDs] = useState(props.selectedIDs);
+	if (props.selectedIDs !== prevSelectedIDs) {
+		setPrevSelectedIDs(props.selectedIDs);
 		if (props.selectedIDs.length === 1) {
 			setExpansionState(1);
 		}
@@ -169,7 +175,7 @@ const AnnotationsView = memo(React.forwardRef((props, ref) => {
 			setExpansionState(0);
 		}
 		selectionTimeRef.current = Date.now();
-	}, [props.selectedIDs]);
+	}
 
 	let handleAnnotationChange = useCallback((annotation) => {
 		props.onUpdateAnnotations([annotation]);
@@ -201,7 +207,7 @@ const AnnotationsView = memo(React.forwardRef((props, ref) => {
 			return;
 		}
 		let annotationNode = node.closest('.annotation');
-		if (!node.classList.contains('content')) {
+		if (!(node.classList.contains('content') || node.classList.contains('cm-content'))) {
 			if (pressedPreviousKey(event)) {
 				annotationNode.previousElementSibling?.focus();
 				event.preventDefault();

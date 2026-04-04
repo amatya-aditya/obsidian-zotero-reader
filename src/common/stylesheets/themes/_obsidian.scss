@@ -1,0 +1,119 @@
+// ─── Shared — active in both light and dark mode ──────────────────────────────
+
+html.obsidian-theme-light:root[data-obsidian-theme],
+html.obsidian-theme-dark:root[data-obsidian-theme] {
+    // Accent — primary color tracks Obsidian's accent
+    --accent-blue:   var(--color-accent, var(--interactive-accent));
+    --accent-blue10: color-mix(in srgb, var(--color-accent, var(--interactive-accent)) 10%, transparent);
+    --accent-blue30: color-mix(in srgb, var(--color-accent, var(--interactive-accent)) 30%, transparent);
+    --accent-blue50: color-mix(in srgb, var(--color-accent, var(--interactive-accent)) 50%, transparent);
+
+    // Accent palette (non-blue) — injected Obsidian vars carry the correct light/dark value
+    --accent-gold:      var(--color-yellow);
+    --accent-green:     var(--color-green);
+    --accent-orange:    var(--color-orange);
+    --accent-red:       var(--color-red);
+    --accent-teal:      var(--color-cyan);
+    --accent-white:     #fff;
+    --accent-wood-dark: #996b6f;
+    --accent-wood:      #cc7a52;
+    --accent-yellow:    var(--color-yellow);
+
+    // Fill hierarchy — --text-normal / --text-muted / --text-faint already switch
+    --fill-primary:     var(--text-normal);
+    --fill-secondary:   var(--text-muted);
+    --fill-tertiary:    var(--text-faint);
+    --fill-quarternary: color-mix(in srgb, var(--text-normal) 10%, transparent);
+    --fill-quinary:     color-mix(in srgb, var(--text-normal)  5%, transparent);
+    --fill-senary:      color-mix(in srgb, var(--text-normal)  2%, transparent);
+
+    // Background palette — --background-primary already switches
+    --color-background:   var(--background-primary);
+    --color-background50: color-mix(in srgb, var(--background-primary) 50%, transparent);
+    --color-background70: color-mix(in srgb, var(--background-primary) 70%, transparent);
+
+    // Borders — --background-modifier-border already switches
+    --color-border:   var(--background-modifier-border);
+    --color-border50: color-mix(in srgb, var(--background-modifier-border) 50%, transparent);
+
+    // Panes & dividers — --background-secondary / --background-secondary-alt switch
+    --color-panedivider: var(--background-modifier-border);
+    --color-sidepane:    var(--background-secondary);
+    --color-toolbar:     var(--file-header-background);
+
+    // Scrollbar background
+    --color-scrollbar-background: transparent;
+
+    // Composite opaque blends (used by --material-mix-* vars)
+    --color-quinary-on-background:     color-mix(in srgb, var(--background-primary) 97%, var(--text-normal));
+    --color-quarternary-on-background: color-mix(in srgb, var(--background-primary) 90%, var(--text-normal));
+    --color-quarternary-on-sidepane:   color-mix(in srgb, var(--background-secondary) 90%, var(--text-normal));
+
+    // Background materials (alias the base vars — same as stock themes)
+    --material-background:      var(--color-background);
+    --material-background50:    var(--color-background50);
+    --material-background70:    var(--color-background70);
+    --material-button:          var(--color-button);
+    --material-control:         var(--color-control);
+    --material-menu:            var(--color-menu);
+    --material-sidepane:        var(--color-sidepane);
+    --material-tabbar:          var(--color-tabbar);
+    --material-toolbar:         var(--color-toolbar);
+    --material-mix-quinary:     var(--color-quinary-on-background);
+    --material-mix-quarternary: var(--color-quarternary-on-background);
+
+    // Border materials
+    --material-border-transparent: 1px solid transparent;
+    --material-border:             1px solid var(--color-border);
+    --material-border50:           1px solid var(--color-border50);
+    --material-panedivider:        1px solid var(--color-panedivider);
+    --material-border-quinary:     1px solid var(--fill-quinary);
+    --material-border-quarternary: 1px solid var(--fill-quarternary);
+
+    // Tag colors — Obsidian exposes --color-red/green/blue/etc.
+    --tag-blue:    var(--color-blue);
+    --tag-gray:    var(--color-gray);
+    --tag-green:   var(--color-green);
+    --tag-indigo:  var(--color-purple);
+    --tag-magenta: var(--color-pink);
+    --tag-orange:  var(--color-orange);
+    --tag-plum:    var(--color-purple);
+    --tag-purple:  var(--color-purple);
+    --tag-red:     var(--color-red);
+    --tag-teal:    var(--color-cyan);
+    --tag-yellow:  var(--color-yellow);
+}
+
+// ─── Light-only overrides ─────────────────────────────────────────────────────
+
+html.obsidian-theme-light:root[data-obsidian-theme] {
+    color-scheme: light;
+
+    --color-button:   var(--background-primary);
+    --color-button50: color-mix(in srgb, var(--background-primary) 50%, transparent);
+    --color-control:  var(--background-primary);
+
+    --color-tabbar: var(--background-secondary-alt, var(--background-secondary));
+
+    --color-menu: color-mix(in srgb, var(--background-secondary) 72%, transparent);
+
+    --color-scrollbar:       var(--scrollbar-thumb-bg);
+    --color-scrollbar-hover: var(--scrollbar-thumb-bg-hover);
+}
+
+// ─── Dark-only overrides ──────────────────────────────────────────────────────
+
+html.obsidian-theme-dark:root[data-obsidian-theme] {
+    color-scheme: dark;
+
+    --color-button:   var(--background-modifier-form-field);
+    --color-button50: color-mix(in srgb, var(--background-modifier-form-field) 50%, transparent);
+    --color-control:  var(--text-on-accent);
+
+    --color-tabbar: var(--background-primary);
+
+    --color-menu: color-mix(in srgb, var(--background-secondary) 58%, transparent);
+
+    --color-scrollbar:       var(--scrollbar-thumb-bg);
+    --color-scrollbar-hover: var(--scrollbar-thumb-bg-hover);
+}

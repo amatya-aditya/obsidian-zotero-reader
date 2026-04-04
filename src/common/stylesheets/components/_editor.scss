@@ -90,6 +90,7 @@
 	}
 }
 
+// ZotFlow
 .expandable-editor {
 	.selected & {
 		pointer-events: all;
@@ -100,6 +101,7 @@
 		-webkit-line-clamp: 3;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
+		font-size: 1em;
 	}
 
 	&.expanded {
@@ -108,5 +110,26 @@
 			-webkit-line-clamp: unset;
 			-webkit-box-orient: unset;
 		}
+
+		.obsidian-app .content {
+			min-height: calc(1 * 1em * calc(4 / 3));
+			max-height: calc(16 * 1em * calc(4 / 3));
+			padding-inline-end: 0px;
+			overflow-y: auto;
+		}
+
+		.cm-scroller {
+			overflow-y: auto;
+		}
+	}
+
+	.obsidian-app .content {
+		min-height: calc(1 * 1em * calc(4 / 3));
+		max-height: calc(6 * 1em * calc(4 / 3));
+		padding-inline-end: 0px;
+	}
+
+	.cm-scroller {
+		overflow-y: hidden;
 	}
 }
