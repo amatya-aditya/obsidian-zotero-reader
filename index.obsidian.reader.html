@@ -59,7 +59,7 @@
 	<!-- Loading Enhance.js -->
 	<script src="/enhance.js" type="text/javascript"></script>
 
-	<!-- Script to copy and scope Obsidian app.css styles -->
+	<!-- Script to copy and scope Obsidian styles -->
 	<script>
 			(() => {
 				const processRuleList = (ruleList, prefix) => {
@@ -213,16 +213,16 @@
 				};
 
 				const cssChunks = [];
-				const appSheets = Array.from(
+				const obsidianSheets = Array.from(
 					window.findParentWindow()?.document?.styleSheets || []
 				).filter(
 					(sheet) =>
-						sheet.href &&
-						sheet.href.startsWith(window.origin) &&
-						sheet.href.includes("app.css")
+						sheet.href === null ||
+						(sheet.href &&
+							sheet.href.startsWith(window.origin))
 				);
 
-				for (const sheet of appSheets) {
+				for (const sheet of obsidianSheets) {
 					try {
 						cssChunks.push(
 							processRuleList(sheet.cssRules, ".obsidian-app")
