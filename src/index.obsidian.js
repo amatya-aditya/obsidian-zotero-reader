@@ -1,5 +1,6 @@
 import ZoteroReaderAdapter from "./index.obsidian.reader.js";
 import {
+	disposeBridge,
 	initBridge,
 	ObsidianBridge,
 	registerChildAPI,
@@ -13,16 +14,20 @@ import { connect, WindowMessenger } from "penpal";
  */
 
 (async () => {
-	const messenger = new WindowMessenger({
-		remoteWindow: window.findParentWindow(),
-		allowedOrigins: ["*"],
-	});
-
-	const connection = connect({
-		messenger,
-	});
-	const parent = await connection.promise;
-	parent.shakehand().then(() => {
+	let connection;
+	const directBootstrap = window.frameElement?.__OBSIDIAN_BRIDGE__;
+	if (typeof directBootstrap === "function") {
+		window.__OBSIDIAN_BRIDGE__ = directBootstrap;
+	} else {
+		const messenger = new WindowMessenger({
+			remoteWindow: window.findParentWindow(),
+			allowedOrigins: ["*"],
+		});
+		connection = connect({ messenger });
+		const parent = await connection.promise;
+		await parent.shakehand();
+	}
+	{
 		initBridge();
 
 		// Populate OBSIDIAN_THEME_VARIABLES from parent so adoptObsidianStyles() works
@@ -31,8 +36,10 @@ import { connect, WindowMessenger } from "penpal";
 		}
 
 		const readerAdapter = new ZoteroReaderAdapter();
+		let destroyed = false;
 		const childAPI = {
 			async initReader(opts) {
+				if (destroyed) return false;
 				readerAdapter.on((evt) => ObsidianBridge.handleEvent(evt));
 
 				// Refresh theme variables before each reader init (theme may have changed)
@@ -73,9 +80,23 @@ import { connect, WindowMessenger } from "penpal";
 			async navigate(location) {
 				readerAdapter.navigate(location);
 				return true;
-			}
+			},
+			async destroy() {
+				if (destroyed) return true;
+				destroyed = true;
+				try {
+					await readerAdapter.dispose();
+				}
+				finally {
+					// ZotFlow: The direct child API replaced Penpal RPC after the
+					// handshake; release its listener and parent-realm references.
+					disposeBridge();
+					connection?.destroy();
+				}
+				return true;
+			},
 		};
 
-		registerChildAPI(childAPI);
-	});
+		await registerChildAPI(childAPI);
+	}
 })();

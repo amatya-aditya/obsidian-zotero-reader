@@ -1,4 +1,7 @@
 import Reader from "./common/reader";
+import zoteroFTL from '../locales/en-US/zotero.ftl';
+import readerFTL from '../locales/en-US/reader.ftl';
+import brandFTL from '../locales/en-US/brand.ftl';
 import { ObsidianBridge } from "./obsidian-adapter";
 
 /**
@@ -9,7 +12,10 @@ import { ObsidianBridge } from "./obsidian-adapter";
 
 export default class ZoteroReaderAdapter {
 	reader;
+
 	listeners = new Set();
+
+	disposePromise;
 
 	on(cb) {
 		this.listeners.add(cb);
@@ -23,6 +29,7 @@ export default class ZoteroReaderAdapter {
 
 	async createReader(opts) {
 		const defaults = {
+			ftl: opts.ftl || [zoteroFTL, readerFTL, brandFTL],
 			readOnly: false,
 			annotations: [],
 			primaryViewState: {},
@@ -30,6 +37,11 @@ export default class ZoteroReaderAdapter {
 			sidebarOpen: false,
 			toolbarPlaceholderWidth: 0,
 			showAnnotations: true,
+			// ZotFlow's host bridge already suppresses progress after close/reconnect.
+			getSDTPack: ({ onProgress } = {}) => ObsidianBridge.getSDTPack({
+				onProgress,
+				password: this.reader?._password ?? opts.password,
+			}),
 			onOpenContextMenu: (params) => {
 				this.reader.openContextMenu(params);
 			},
@@ -182,7 +194,20 @@ export default class ZoteroReaderAdapter {
 		await this.reader.initializedPromise;
 		window._reader = this.reader;
 
-		// adopt obsidian styles into view iframes
+		// Wire the mobile "tap outside to close" backdrop (see
+		// index.obsidian.reader.html + stylesheets/components/_responsive.scss).
+		// The backdrop only receives pointer events while it is visible (narrow
+		// viewport + sidebar open), so a tap on it always means "dismiss the
+		// drawer". Mirrors the sidebar-toggle button: update state + emit.
+		const sidebarBackdrop = document.getElementById("zf-sidebar-backdrop");
+		if (sidebarBackdrop) {
+			sidebarBackdrop.addEventListener("pointerdown", () => {
+				this.reader.toggleSidebar(false);
+				this.emit({ type: "sidebarToggled", open: false });
+			});
+		}
+
+		// adopt obsidian styles
 		this.adoptObsidianStyles(
 			window.OBSIDIAN_THEME_VARIABLES,
 			this.reader._primaryView._iframeWindow.document
@@ -497,6 +522,31 @@ export default class ZoteroReaderAdapter {
 	}
 
 	async dispose() {
-		this.reader = undefined;
+		if (this.disposePromise) return this.disposePromise;
+
+		this.disposePromise = (async () => {
+			const reader = this.reader;
+			try {
+				// Obsidian owns the iframe lifecycle. Release its SDT overlays here
+				// before the existing Reader cleanup clears the references to them.
+				try {
+					reader?._secondarySDTView?.destroy();
+					reader?._primarySDTView?.destroy();
+				}
+				finally {
+					await reader?.destroy?.();
+				}
+			}
+			finally {
+				if (window._reader === reader) {
+					delete window._reader;
+				}
+				this.reader = undefined;
+				this.secondaryViewInitialized = false;
+				this.listeners.clear();
+			}
+		})();
+
+		return this.disposePromise;
 	}
 }

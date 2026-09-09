@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import {
 	caretPositionFromPoint,
-	collapseToOneCharacterAtStart,
+	collapseToOneCharacter,
 	getBoundingPageRect,
 	getColumnSeparatedPageRects,
 	getPageRects,
@@ -20,8 +20,9 @@ import ReactDOM from "react-dom";
 import { IconNoteLarge } from "../../../../common/components/common/icons";
 import { closestElement, isRTL, isVertical } from "../../lib/nodes";
 import { isSafari } from "../../../../common/lib/utilities";
-import { expandRect, getBoundingRect, rectsEqual } from "../../lib/rect";
+import { expandRect, rectsEqual } from "../../lib/rect";
 import cx from "classnames";
+import { SpotlightKey } from "../../dom-view";
 
 export type DisplayedAnnotation = {
 	id?: string;
@@ -223,9 +224,9 @@ let HighlightOrUnderline: React.FC<HighlightOrUnderlineProps> = (props) => {
 	let [isResizing, setResizing] = useState(false);
 	let [resizedRange, setResizedRange] = useState(annotation.range);
 
-	let outerGroupRef = useRef<SVGGElement>(null);
-	let rectGroupRef = useRef<SVGGElement>(null);
-	let dragImageRef = isSafari ? outerGroupRef : rectGroupRef;
+	let groupRef = useRef<SVGGElement>(null);
+	let pathRef = useRef<SVGPathElement>(null);
+	let dragImageRef = isSafari ? groupRef : pathRef;
 
 	let handlePointerDown = useCallback((event: React.PointerEvent) => {
 		onPointerDown?.(annotation, event);
@@ -269,6 +270,9 @@ let HighlightOrUnderline: React.FC<HighlightOrUnderlineProps> = (props) => {
 
 	let allowResize = selected && singleSelection && !annotation.readOnly && supportsCaretPositionFromPoint();
 
+	let isSpotlight = annotation.key === SpotlightKey.ReadAloudActiveSegment
+		|| annotation.key === SpotlightKey.ReadAloudActiveSentence;
+
 	useEffect(() => {
 		if (!allowResize && isResizing) {
 			handleResizeEnd(annotation, true);
@@ -286,6 +290,20 @@ let HighlightOrUnderline: React.FC<HighlightOrUnderlineProps> = (props) => {
 				if (rect.width == 0 || rect.height == 0) {
 					continue;
 				}
+				if (isSpotlight) {
+					let marginInline = 2;
+					let marginBlock = 0;
+
+					let element = closestElement(range.startContainer);
+					if (element) {
+						let lineHeight = parseFloat(getComputedStyle(element).lineHeight);
+						if (!isNaN(lineHeight)) {
+							marginBlock = (lineHeight - rect.height) / 2;
+						}
+					}
+
+					rect = expandRect(rect, marginInline, marginBlock);
+				}
 				let key = JSON.stringify(rect);
 				if (seenRects.has(key)) {
 					continue;
@@ -302,7 +320,7 @@ let HighlightOrUnderline: React.FC<HighlightOrUnderlineProps> = (props) => {
 		let commentIconPosition;
 		if (annotation.comment) {
 			let commentIconRange = ranges[0].cloneRange();
-			collapseToOneCharacterAtStart(commentIconRange);
+			collapseToOneCharacter(commentIconRange);
 			let rect = getBoundingPageRect(commentIconRange);
 			commentIconPosition = { x: rect.x, y: rect.y };
 		}
@@ -311,24 +329,25 @@ let HighlightOrUnderline: React.FC<HighlightOrUnderlineProps> = (props) => {
 		}
 
 		return { rects, interactiveRects, commentIconPosition };
-	}, [annotation, isResizing, resizedRange]);
+	}, [annotation.comment, annotation.range, isResizing, isSpotlight, resizedRange]);
 
 	let vert = isVertical(annotation.range.commonAncestorContainer);
 	let rtl = isRTL(annotation.range.commonAncestorContainer);
 	let underline = annotation.type === 'underline';
-	let rectGroup = useMemo(() => {
-		return <g ref={rectGroupRef}>
-			{rects.map((rect, i) => (
-				<rect
-					x={vert && underline ? rect.x + (rtl ? -3 : rect.width) : rect.x}
-					y={!vert && underline ? rect.y + rect.height : rect.y}
-					width={vert && underline ? 3 : rect.width}
-					height={!vert && underline ? 3 : rect.height}
-					opacity="50%"
-					key={i}
-				/>
-			))}
-		</g>;
+	let path = useMemo(() => {
+		return (
+			<path
+				ref={pathRef}
+				opacity="50%"
+				d={rects.map((rect) => {
+					let x = vert && underline ? rect.x + (rtl ? -3 : rect.width) : rect.x;
+					let y = !vert && underline ? rect.y + rect.height : rect.y;
+					let width = vert && underline ? 3 : rect.width;
+					let height = !vert && underline ? 3 : rect.height;
+					return `M ${x} ${y} h ${width} v ${height} H ${x} V ${y}`;
+				}).join('\n')}
+			/>
+		);
 	}, [rects, rtl, underline, vert]);
 
 	let foreignObjects = useMemo(() => {
@@ -357,6 +376,7 @@ let HighlightOrUnderline: React.FC<HighlightOrUnderlineProps> = (props) => {
 					className="needs-pointer-events annotation-div"
 					onPointerDown={handlePointerDown}
 					onPointerUp={handlePointerUp}
+					onPointerCancel={handlePointerUp}
 					onContextMenu={handleContextMenu}
 					data-annotation-id={annotation.id}
 					key={i + '-rect'}
@@ -377,16 +397,13 @@ let HighlightOrUnderline: React.FC<HighlightOrUnderlineProps> = (props) => {
 				<div
 					className={cx('annotation-div', { 'disable-pointer-events': interactiveRects.has(rect) })}
 					style={{
-						// Safari needs position: absolute, which breaks all other browsers
-						position: isSafari ? 'absolute' : undefined,
-						top: `${rect.y}px`,
-						left: `${rect.x}px`,
 						width: `${rect.width}px`,
 						height: `${rect.height}px`
 					}}
 					draggable={true}
 					onPointerDown={handlePointerDown}
 					onPointerUp={handlePointerUp}
+					onPointerCancel={handlePointerUp}
 					onContextMenu={handleContextMenu}
 					onDragStart={handleDragStart}
 					data-annotation-id={annotation.id}
@@ -424,9 +441,9 @@ let HighlightOrUnderline: React.FC<HighlightOrUnderlineProps> = (props) => {
 			tabIndex={-1}
 			data-annotation-id={annotation.id}
 			fill={annotation.color}
-			ref={outerGroupRef}
+			ref={groupRef}
 		>
-			{rectGroup}
+			{path}
 			{foreignObjects}
 			{resizer}
 		</g>
@@ -536,11 +553,16 @@ type NotePreviewProps = {
 
 const StaggeredNotes: React.FC<StaggeredNotesProps> = (props) => {
 	let { annotations, selectedAnnotationIDs, onPointerDown, onPointerUp, onContextMenu, onDragStart } = props;
-	let staggerMap = new Map<string | undefined, number>();
+	let staggerMap = new Map<string, number>();
 	return <>
 		{annotations.map((annotation) => {
-			let stagger = staggerMap.has(annotation.sortIndex) ? staggerMap.get(annotation.sortIndex)! : 0;
-			staggerMap.set(annotation.sortIndex, stagger + 1);
+			let rect = annotation.range.getBoundingClientRect();
+			// Stagger notes that share a sort index or visual position
+			let posKey = `pos:${Math.round(rect.x / 5)},${Math.round(rect.y / 5)}`;
+			let sortKey = `sort:${annotation.sortIndex}`;
+			let stagger = Math.max(staggerMap.get(posKey) ?? 0, staggerMap.get(sortKey) ?? 0);
+			staggerMap.set(posKey, stagger + 1);
+			staggerMap.set(sortKey, stagger + 1);
 			if (annotation.id) {
 				return (
 					<Note
@@ -683,15 +705,6 @@ const Resizer: React.FC<ResizerProps> = (props) => {
 	let handlePointerMove = useCallback((event: React.PointerEvent) => {
 		let { clientX, clientY } = event;
 		let isStart = resizingSide === 'start';
-		if (isSafari) {
-			let targetRect = (event.target as Element).getBoundingClientRect();
-			if (clientX >= targetRect.left && clientX <= targetRect.right) {
-				// In Safari, caretPositionFromPoint() doesn't work if the mouse is directly over the target element
-				// (returns the last element in the body instead), so we have to offset the X position by 1 pixel.
-				// This makes resizing a bit jerkier, but it's better than the alternative.
-				clientX = isStart ? targetRect.left - 1 : targetRect.right + 1;
-			}
-		}
 		let pos = caretPositionFromPoint(event.view.document, clientX, clientY);
 		if (pos) {
 			// Just bail if the browser thinks the mouse is over the SVG - that seems to only happen momentarily
@@ -776,14 +789,15 @@ const Resizer: React.FC<ResizerProps> = (props) => {
 	}
 
 	let vert = isVertical(annotation.range.commonAncestorContainer);
-	let topLeftRect = highlightRects[0];
-	let bottomRightRect = highlightRects[highlightRects.length - 1];
+	let rtl = isRTL(annotation.range.commonAncestorContainer);
+	let startRect = highlightRects[0];
+	let endRect = highlightRects[highlightRects.length - 1];
 	return <>
 		<rect
-			x={vert ? topLeftRect.left : topLeftRect.left - size}
-			y={vert ? topLeftRect.top - size : topLeftRect.top}
-			width={vert ? topLeftRect.width : size}
-			height={vert ? size : topLeftRect.height}
+			x={vert ? startRect.left : rtl ? startRect.right : startRect.left - size}
+			y={vert ? startRect.top - size : startRect.top}
+			width={vert ? startRect.width : size}
+			height={vert ? size : startRect.height}
 			fill={annotation.color}
 			className={cx('resizer inherit-pointer-events', { 'resizer-vertical': vert })}
 			onPointerDown={handlePointerDown}
@@ -794,10 +808,10 @@ const Resizer: React.FC<ResizerProps> = (props) => {
 			onLostPointerCapture={handleLostPointerCapture}
 		/>
 		<rect
-			x={vert ? bottomRightRect.left : bottomRightRect.right}
-			y={vert ? bottomRightRect.bottom : bottomRightRect.top}
-			width={vert ? bottomRightRect.width : size}
-			height={vert ? size : bottomRightRect.height}
+			x={vert ? endRect.left : rtl ? endRect.left - size : endRect.right}
+			y={vert ? endRect.bottom : endRect.top}
+			width={vert ? endRect.width : size}
+			height={vert ? size : endRect.height}
 			fill={annotation.color}
 			className={cx("resizer inherit-pointer-events", { 'resizer-vertical': vert })}
 			onPointerDown={handlePointerDown}
@@ -856,6 +870,7 @@ let CommentIcon = React.forwardRef<SVGSVGElement, CommentIconProps>((props, ref)
 				draggable={true}
 				onPointerDown={props.onPointerDown}
 				onPointerUp={props.onPointerUp}
+				onPointerCancel={props.onPointerUp}
 				onContextMenu={props.onContextMenu}
 				onDragStart={props.onDragStart}
 				onDragEnd={props.onDragEnd}
